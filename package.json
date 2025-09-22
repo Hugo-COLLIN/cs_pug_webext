@@ -1,0 +1,19 @@
+{
+  "name": "cs_pug_webext",
+  "version": "1.0.0",
+  "description": "Extension de navigateur avec CoffeeScript, Pug et esBuild",
+  "author": "",
+  "license": "NONE",
+  "scripts": {
+    "build": "node build.js",
+    "dev": "node build.js --watch",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.1.12",
+    "chokidar": "^3.5.3",
+    "coffeescript": "^2.7.0",
+    "esbuild": "^0.25.10",
+    "pug": "^3.0.3"
+  }
+}

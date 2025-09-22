@@ -1,0 +1,50 @@
+doctype html
+html(lang="fr")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title Options - Mon Extension
+    link(rel="stylesheet" href="../styles/main.css")
+
+  body.options
+    .container
+      header
+        h1 Options Avancées
+        p Configurez votre extension en détail
+
+      main
+        .section
+          h2 Général
+
+          .form-group
+            label(for="enabled")
+              input#enabled(type="checkbox")
+              span Activer l'extension
+
+          .form-group
+            label(for="theme") Thème de l'interface :
+            select#theme
+              option(value="light") Clair
+              option(value="dark") Sombre
+              option(value="auto") Automatique
+
+        .section
+          h2 Notifications
+
+          .form-group
+            label(for="notifications")
+              input#notifications(type="checkbox")
+              span Activer les notifications
+
+          .form-group
+            label(for="sound")
+              input#sound(type="checkbox")
+              span Sons d'alerte
+
+        .actions
+          button#save.primary Sauvegarder
+          button#reset.secondary Réinitialiser
+
+        .status#status
+
+    script(src="options.js")
