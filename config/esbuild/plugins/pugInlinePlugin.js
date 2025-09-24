@@ -11,7 +11,6 @@ const pugInlinePlugin = {
       let contents = await fs.promises.readFile(args.path, 'utf8');
       const fileExt = path.extname(args.path);
 
-      // Vérifier si le fichier contient des templates Pug
       if (!pugTemplateRegex.test(contents)) {
         return null;
       }
@@ -19,7 +18,12 @@ const pugInlinePlugin = {
       console.log(`🐶 Templates Pug inline détectés dans ${path.relative(process.cwd(), args.path)}`);
       pugTemplateRegex.lastIndex = 0;
 
-      // Transformer tous les templates pug en HTML
+      const fileName = path.basename(args.path, fileExt);
+      const outputDir = path.dirname(args.path.replace('src', 'dist'));
+
+      let htmlContent = '';
+
+      // Extraire et compiler les templates Pug
       contents = contents.replace(pugTemplateRegex, (match, pugCode) => {
         try {
           // Préprocessing pour corriger les syntaxes non-standard
@@ -46,17 +50,6 @@ const pugInlinePlugin = {
             }
           }
 
-          // Gérer les interpolations ${...}
-          const interpolationPlaceholders = [];
-          let index = 0;
-
-          pugCode = pugCode.replace(/\${([^}]*)}/g, (_, expr) => {
-            const placeholder = `___PLACEHOLDER_${index}___`;
-            interpolationPlaceholders.push(expr);
-            index++;
-            return placeholder;
-          });
-
           // Compiler Pug vers HTML
           let html = pug.compile(pugCode, {
             pretty: process.env.APP_MODE === 'dev',
@@ -64,34 +57,43 @@ const pugInlinePlugin = {
             basedir: path.dirname(args.path)
           })();
 
-          // Restaurer les interpolations
-          interpolationPlaceholders.forEach((expr, i) => {
-            html = html.replace(
-              `___PLACEHOLDER_${i}___`,
-              '${' + expr + '}'
-            );
-          });
+          htmlContent = html;
 
-          // Nettoyer l'HTML et le formater sur une seule ligne pour éviter les problèmes d'indentation
-          html = html
-            .split('\n')
-            .map(line => line.trim())
-            .filter(line => line.length > 0)
-            .join('')
-            .trim();
-
-          return '`' + html.replace(/`/g, '\\`') + '`';
+          // IMPORTANT: Retourner null au lieu d'une chaîne vide
+          // et supprimer les lignes qui utilisent le template
+          return 'null';
         } catch (error) {
           console.error('❌ Erreur compilation template Pug:', error);
           throw error;
         }
       });
 
-      // Traitement selon le type de fichier
+      // Créer le fichier HTML
+      const htmlTemplate = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${fileName.charAt(0).toUpperCase() + fileName.slice(1)}</title>
+  <link rel="stylesheet" href="${fileName}.css">
+</head>
+<body>
+  ${htmlContent}
+  <script src="${fileName}.js"></script>
+</body>
+</html>`;
+
+      // Écrire le fichier HTML
+      await fs.promises.mkdir(outputDir, { recursive: true });
+      const htmlPath = path.join(outputDir, `${fileName}.html`);
+      await fs.promises.writeFile(htmlPath, htmlTemplate, 'utf8');
+      console.log(`📄 HTML généré: ${path.relative(process.cwd(), htmlPath)}`);
+
+      // Compiler CoffeeScript
       if (fileExt === '.coffee') {
         try {
           const coffee = require('coffeescript');
-          console.log(`☕ Compilation ${path.relative(process.cwd(), args.path)} (avec templates Pug)`);
+          console.log(`☕ Compilation ${path.relative(process.cwd(), args.path)} -> HTML + JS`);
 
           const result = coffee.compile(contents, {
             filename: args.path,
@@ -105,7 +107,7 @@ const pugInlinePlugin = {
           };
         } catch (error) {
           console.error(`❌ Erreur CoffeeScript dans ${args.path}:`, error.message);
-          console.error('📄 Contenu qui a causé l\'erreur:');
+          console.error('📄 Contenu problématique:');
           console.error(contents);
           throw error;
         }

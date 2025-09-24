@@ -1,11 +1,12 @@
 document.addEventListener 'DOMContentLoaded', ->
   console.log "Popup chargé pour #{APP_TARGET}"
 
-  popupTemplate = pug`
+  # language=pug
+  pug`
     .popup-container
       header.popup-header
         h1#app-title Mon Extension
-        .version-badge v#{APP_VERSION}
+        .version-badge v{APP_VERSION}
       main.popup-main
         .form-group
           label.toggle-label
@@ -48,5 +49,4 @@ document.addEventListener 'DOMContentLoaded', ->
       chrome.storage.sync.set settings, ->
         showStatus 'Paramètres sauvegardés!', 'success'
 
-  document.body.innerHTML = popupTemplate
   setupEventHandlers()
