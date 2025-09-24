@@ -18,6 +18,30 @@ function writeJsonFile(filePath, data) {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
 
+// Fonction pour convertir les chemins source vers les chemins de sortie
+function convertSourcePathToOutput(sourcePath) {
+  if (!sourcePath || typeof sourcePath !== 'string') {
+    return sourcePath;
+  }
+
+  // Si ce n'est pas un chemin source, le retourner tel quel
+  if (!sourcePath.startsWith('src/')) {
+    return sourcePath;
+  }
+
+  // Enlever le préfixe 'src/'
+  let outputPath = sourcePath.replace(/^src\//, '');
+
+  // Convertir les extensions
+  if (outputPath.endsWith('.coffee')) {
+    outputPath = outputPath.replace(/\.coffee$/, '.js');
+  } else if (outputPath.endsWith('.pug')) {
+    outputPath = outputPath.replace(/\.pug$/, '.html');
+  }
+
+  return outputPath;
+}
+
 function generateManifestPlugin(targetBrowser, version) {
   return {
     name: 'generate-manifest',
@@ -67,6 +91,21 @@ function generateManifestPlugin(targetBrowser, version) {
               if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
                 targetObj[manifestKey] = {};
                 processObject(value, targetObj[manifestKey]);
+              } else if (Array.isArray(value)) {
+                // Traiter les tableaux (comme content_scripts[].js)
+                targetObj[manifestKey] = value.map(item => {
+                  if (typeof item === 'object' && item !== null) {
+                    const processedItem = {};
+                    processObject(item, processedItem);
+                    return processedItem;
+                  } else if (typeof item === 'string') {
+                    return convertSourcePathToOutput(item);
+                  }
+                  return item;
+                });
+              } else if (typeof value === 'string') {
+                // Convertir les chemins source en chemins de sortie
+                targetObj[manifestKey] = convertSourcePathToOutput(value);
               } else {
                 targetObj[manifestKey] = value;
               }
@@ -121,6 +160,7 @@ function generateManifestPlugin(targetBrowser, version) {
 
           writeJsonFile(distManifestPath, manifest);
           console.log(`✅ Manifest généré: ${distManifestPath}`);
+
         } catch (error) {
           console.error('❌ Erreur génération manifest:', error.message);
           throw error;

@@ -12,32 +12,32 @@
   ],
 
   "{{chrome}}.background": {
-    "service_worker": "background.js"
+    "service_worker": "src/background/background.coffee"
   },
   "{{firefox}}.background": {
-    "scripts": ["background.js"],
+    "scripts": ["src/background/background.coffee"],
     "persistent": false
   },
 
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"]
+      "js": ["src/content/content.coffee"]
     }
   ],
 
   "{{chrome}}.action": {
-    "default_popup": "popup.html",
+    "default_popup": "src/popup/popup.pug",
     "default_title": "Mon Extension"
   },
   "{{firefox}}.browser_action": {
-    "default_popup": "popup.html",
+    "default_popup": "src/popup/popup.pug",
     "default_title": "Mon Extension"
   },
 
-  "{{chrome}}.options_page": "options.html",
+  "{{chrome}}.options_page": "src/options/options.pug",
   "{{firefox}}.options_ui": {
-    "page": "options.html",
+    "page": "src/options/options.pug",
     "open_in_tab": true
   },
 

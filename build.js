@@ -26,38 +26,67 @@ const staticAssetsConfig = [
   }
 ];
 
-// Découverte automatique des entry points
-function getEntryPoints() {
-  const entrypointsDir = 'src/entrypoints';
+// Extraction générique des entry points depuis le manifest
+function getEntryPointsFromManifest() {
+  const manifestPath = `src/manifest.json`;
+
+  if (!fs.existsSync(manifestPath)) {
+    console.warn(`⚠️  Manifest non trouvé: ${manifestPath}`);
+    return [];
+  }
+
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
   const entries = [];
 
-  if (fs.existsSync(entrypointsDir)) {
-    const files = fs.readdirSync(entrypointsDir);
-    files.forEach(file => {
-      if (file.endsWith('.coffee')) {
-        entries.push(path.join(entrypointsDir, file));
+  // Fonction utilitaire pour ajouter un fichier s'il existe et est un fichier source
+  function addSourceFile(filePath) {
+    if (!filePath || typeof filePath !== 'string') return;
+
+    // Vérifier si c'est un fichier source (.coffee ou .pug)
+    if (filePath.endsWith('.coffee') || filePath.endsWith('.pug')) {
+      if (fs.existsSync(filePath)) {
+        entries.push(filePath);
+        console.log(`✅ Entry point trouvé: ${filePath}`);
+      } else {
+        console.warn(`⚠️  Entry point manquant: ${filePath}`);
       }
-    });
+    }
   }
 
-  // Ajouter les templates Pug comme entry points virtuels
-  const templatesDir = 'src/templates';
-  if (fs.existsSync(templatesDir)) {
-    const templates = fs.readdirSync(templatesDir);
-    templates.forEach(file => {
-      if (file.endsWith('.pug')) {
-        entries.push(path.join(templatesDir, file));
+  // Fonction récursive pour parcourir toutes les propriétés du manifest
+  function scanManifestProperties(obj, path = '') {
+    for (const [key, value] of Object.entries(obj)) {
+      const currentPath = path ? `${path}.${key}` : key;
+
+      if (typeof value === 'string') {
+        // Traiter les chemins de fichiers directs
+        addSourceFile(value);
+      } else if (Array.isArray(value)) {
+        // Traiter les tableaux de fichiers
+        value.forEach(item => {
+          if (typeof item === 'string') {
+            addSourceFile(item);
+          } else if (typeof item === 'object' && item !== null) {
+            scanManifestProperties(item, currentPath);
+          }
+        });
+      } else if (typeof value === 'object' && value !== null) {
+        // Récursion pour les objets imbriqués
+        scanManifestProperties(value, currentPath);
       }
-    });
+    }
   }
 
-  console.log('📄 Entry points découverts:', entries);
+  // Scanner tout le manifest
+  scanManifestProperties(manifest);
+
+  console.log('📄 Entry points détectés:', entries);
   return entries;
 }
 
 // Configuration esbuild
 const options = {
-  entryPoints: getEntryPoints(),
+  entryPoints: getEntryPointsFromManifest().filter(entry => entry.endsWith('.coffee')),
   bundle: true,
   outdir: outdir,
   minify: appMode === 'prod',
@@ -66,7 +95,7 @@ const options = {
   target: targetBrowser === 'firefox' ? ['firefox89'] : ['chrome89'],
   format: 'iife',
   logLevel: 'info',
-  entryNames: '[name]',
+  entryNames: '[dir]/[name]', // Préserver la structure des dossiers
   define: {
     'APP_MODE': `"${appMode}"`,
     'APP_TARGET': `"${targetBrowser}"`,
@@ -75,7 +104,7 @@ const options = {
   plugins: [
     cleanDirectoryPlugin(outdir),
     coffeeScriptPlugin,
-    pugPlugin,
+    pugPlugin(getEntryPointsFromManifest().filter(entry => entry.endsWith('.pug'))),
     generateManifestPlugin(targetBrowser, appVersion),
     copy({
       assets: staticAssetsConfig,

@@ -2,41 +2,43 @@ const fs = require('fs');
 const path = require('path');
 const pug = require('pug');
 
-const pugPlugin = {
-  name: 'pug',
-  setup(build) {
-    build.onLoad({ filter: /\.pug$/ }, async (args) => {
-      try {
-        const source = await fs.promises.readFile(args.path, 'utf8');
+function pugPlugin(pugEntryPoints = []) {
+  return {
+    name: 'pug',
+    setup(build) {
+      build.onStart(async () => {
+        // Traiter uniquement les entry points Pug spécifiés
+        for (const pugFile of pugEntryPoints) {
+          if (fs.existsSync(pugFile)) {
+            try {
+              console.log(`🐶 Compilation ${path.relative(process.cwd(), pugFile)}`);
 
-        console.log(`🐶 Compilation ${path.relative(process.cwd(), args.path)}`);
+              const source = await fs.promises.readFile(pugFile, 'utf8');
+              const html = pug.render(source, {
+                filename: pugFile,
+                pretty: process.env.APP_MODE === 'dev',
+                basedir: path.dirname(pugFile)
+              });
 
-        const html = pug.render(source, {
-          filename: args.path,
-          pretty: process.env.APP_MODE === 'dev',
-          basedir: path.dirname(args.path)
-        });
+              // Préserver la structure des dossiers : src/popup/popup.pug -> dist/popup/popup.html
+              const srcRelativePath = path.relative('src', pugFile);
+              const outputPath = path.join(build.initialOptions.outdir, srcRelativePath.replace('.pug', '.html'));
 
-        // Déterminer le chemin de sortie
-        const relativePath = path.relative('src/templates', args.path);
-        const outputPath = path.join(build.initialOptions.outdir, relativePath.replace('.pug', '.html'));
+              // Créer le dossier de sortie
+              await fs.promises.mkdir(path.dirname(outputPath), { recursive: true });
 
-        // Créer le dossier de sortie
-        await fs.promises.mkdir(path.dirname(outputPath), { recursive: true });
-
-        // Écrire le fichier HTML
-        await fs.promises.writeFile(outputPath, html);
-
-        return {
-          contents: '', // Pas besoin de contenu JS
-          loader: 'js'
-        };
-      } catch (error) {
-        console.error(`❌ Erreur Pug dans ${args.path}:`, error.message);
-        throw error;
-      }
-    });
-  }
-};
+              // Écrire le fichier HTML
+              await fs.promises.writeFile(outputPath, html);
+              console.log(`✅ HTML généré: ${outputPath}`);
+            } catch (error) {
+              console.error(`❌ Erreur Pug dans ${pugFile}:`, error.message);
+              throw error;
+            }
+          }
+        }
+      });
+    }
+  };
+}
 
 module.exports = { pugPlugin };
