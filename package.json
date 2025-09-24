@@ -6,14 +6,19 @@
   "license": "NONE",
   "scripts": {
     "build": "node build.js",
-    "dev": "node build.js --watch",
+    "build:prod": "cross-env APP_MODE=prod node build.js",
+    "dev": "cross-env APP_MODE=dev node build.js --watch",
+    "dev:firefox": "cross-env TARGET=firefox APP_MODE=dev node build.js --watch",
+    "build:chrome": "cross-env TARGET=chrome APP_MODE=prod node build.js",
+    "build:firefox": "cross-env TARGET=firefox APP_MODE=prod node build.js",
     "clean": "rm -rf dist"
   },
   "devDependencies": {
     "@types/chrome": "^0.1.12",
-    "chokidar": "^3.5.3",
     "coffeescript": "^2.7.0",
+    "cross-env": "^7.0.3",
     "esbuild": "^0.25.10",
+    "esbuild-plugin-copy": "^2.1.1",
     "pug": "^3.0.3"
   }
 }

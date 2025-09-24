@@ -1,0 +1,49 @@
+{
+  "name": "Mon Extension CoffeeScript",
+  "description": "Extension développée avec CoffeeScript, Pug et esBuild",
+  "version": "1.0.0",
+
+  "{{chrome}}.manifest_version": 3,
+  "{{firefox}}.manifest_version": 2,
+
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+
+  "{{chrome}}.background": {
+    "service_worker": "background.js"
+  },
+  "{{firefox}}.background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+
+  "{{chrome}}.action": {
+    "default_popup": "popup.html",
+    "default_title": "Mon Extension"
+  },
+  "{{firefox}}.browser_action": {
+    "default_popup": "popup.html",
+    "default_title": "Mon Extension"
+  },
+
+  "{{chrome}}.options_page": "options.html",
+  "{{firefox}}.options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
