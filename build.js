@@ -2,6 +2,7 @@ const esbuild = require('esbuild');
 const { cleanDirectoryPlugin } = require('./config/esbuild/plugins/cleanDirectoryPlugin');
 const { generateManifestPlugin } = require('./config/esbuild/plugins/generateManifestPlugin');
 const { pugPlugin } = require('./config/esbuild/plugins/pugPlugin');
+const { pugInlinePlugin } = require('./config/esbuild/plugins/pugInlinePlugin');
 const { coffeeScriptPlugin } = require('./config/esbuild/plugins/coffeeScriptPlugin');
 const { copy } = require('esbuild-plugin-copy');
 const fs = require('fs');
@@ -89,7 +90,8 @@ const options = {
   entryPoints: getEntryPointsFromManifest().filter(entry => entry.endsWith('.coffee')),
   bundle: true,
   outdir: outdir,
-  minify: appMode === 'prod',
+  // minify: appMode === 'prod',
+  minify: false,
   sourcemap: appMode === 'dev',
   platform: 'browser',
   target: targetBrowser === 'firefox' ? ['firefox89'] : ['chrome89'],
@@ -103,6 +105,7 @@ const options = {
   },
   plugins: [
     cleanDirectoryPlugin(outdir),
+    pugInlinePlugin,
     coffeeScriptPlugin,
     pugPlugin(getEntryPointsFromManifest().filter(entry => entry.endsWith('.pug'))),
     generateManifestPlugin(targetBrowser, appVersion),

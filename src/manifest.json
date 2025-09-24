@@ -27,7 +27,7 @@
   ],
 
   "{{chrome}}.action": {
-    "default_popup": "src/popup/popup.pug",
+    "default_popup": "src/popup/popup.coffee",
     "default_title": "Mon Extension"
   },
   "{{firefox}}.browser_action": {

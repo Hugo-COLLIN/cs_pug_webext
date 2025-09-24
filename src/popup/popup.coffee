@@ -1,73 +1,71 @@
-# Script pour le popup de l'extension
 document.addEventListener 'DOMContentLoaded', ->
+  console.log "Popup chargé pour #{APP_TARGET}"
 
-  class PopupManager
-    constructor: ->
-      @elements = {}
-      @settings = {}
-      @init()
+  # Template Pug intégré directement dans le CoffeeScript
+  ### language=pug ###
+  popupTemplate = pug`
+  .popup-container
+  header.popup-header
+  h1#app-title= title
+  .version-badge= version
 
-    init: ->
-      @cacheElements()
-      @loadSettings()
-      @bindEvents()
+  main.popup-main
+  .form-group
+  label.toggle-label
+  input#enable-toggle(type="checkbox" ?enabled=enabled)
+  .toggle-switch
+  span Extension activée
 
-    cacheElements: ->
-      @elements =
-        enabledToggle: document.getElementById 'enabled-toggle'
-        themeSelect: document.getElementById 'theme-select'
-        saveButton: document.getElementById 'save-button'
-        status: document.getElementById 'status'
+  .form-group
+  label Theme :
+  select#theme-select
+  option(value="light") Clair
+  option(value="dark") Sombre
 
-    loadSettings: ->
-      chrome.runtime.sendMessage
-        type: 'getData'
-      , (response) =>
-        @settings = response
-        @updateUI()
+  .actions
+  button.primary#save-btn Sauvegarder
+  button.secondary#options-btn Options
 
-    updateUI: ->
-      @elements.enabledToggle.checked = @settings.enabled ? false
-      @elements.themeSelect.value = @settings.settings?.theme ? 'light'
+  .status#status-message
+  `
 
-    bindEvents: ->
-      @elements.saveButton.addEventListener 'click', =>
-        @saveSettings()
+    # Données pour le template
+    data =
+      title: 'Mon Extension'
+    version: "v#{APP_VERSION}"
+    enabled: true
 
-      @elements.enabledToggle.addEventListener 'change', =>
-        @showStatus 'Configuration modifiée'
+    # Injecter le HTML généré
+    document.body.innerHTML = popupTemplate(data)
 
-    saveSettings: ->
-      newSettings =
-        enabled: @elements.enabledToggle.checked
-        settings:
-          theme: @elements.themeSelect.value
-          notifications: true
+    # Gestion des événements
+    setupEventHandlers()
 
-      chrome.runtime.sendMessage
-        type: 'saveData'
-        data: newSettings
-      , (response) =>
-        if response.success
-          @showStatus 'Paramètres sauvegardés!', 'success'
-          @notifyContentScripts()
-        else
-          @showStatus 'Erreur lors de la sauvegarde', 'error'
+    setupEventHandlers = ->
+    enableToggle = document.getElementById 'enable-toggle'
+    themeSelect = document.getElementById 'theme-select'
+    saveBtn = document.getElementById 'save-btn'
 
-    showStatus: (message, type = 'info') ->
-      @elements.status.textContent = message
-      @elements.status.className = "status #{type}"
+    # Charger les paramètres existants
+    chrome.storage.sync.get ['enabled', 'theme'], (result) ->
+      enableToggle.checked = result.enabled ? true
+        themeSelect.value = result.theme ? 'light'
 
-      setTimeout =>
-        @elements.status.textContent = ''
-        @elements.status.className = 'status'
+    # Sauvegarde des paramètres
+    saveBtn.addEventListener 'click', ->
+    settings =
+      enabled: enableToggle.checked
+    theme: themeSelect.value
+
+    chrome.storage.sync.set settings, ->
+    showStatus 'Paramètres sauvegardés!', 'success'
+
+    showStatus = (message, type = 'info') ->
+      statusEl = document.getElementById 'status-message'
+    statusEl.textContent = message
+    statusEl.className = "status #{type}"
+
+    setTimeout ->
+      statusEl.textContent = ''
+    statusEl.className = 'status'
       , 2000
-
-    notifyContentScripts: ->
-      chrome.tabs.query {active: true, currentWindow: true}, (tabs) ->
-        if tabs[0]
-          chrome.tabs.sendMessage tabs[0].id,
-            type: 'settingsChanged'
-
-  # Initialiser le gestionnaire du popup
-  new PopupManager()
