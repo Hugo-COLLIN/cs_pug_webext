@@ -98,6 +98,9 @@ const options = {
   format: 'iife',
   logLevel: 'info',
   entryNames: '[dir]/[name]', // Préserver la structure des dossiers
+  loader: {
+    '.coffee': 'js', // Dire à ESBuild de traiter .coffee comme du JS après transformation
+  },
   define: {
     'APP_MODE': `"${appMode}"`,
     'APP_TARGET': `"${targetBrowser}"`,
