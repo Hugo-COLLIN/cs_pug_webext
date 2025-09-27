@@ -1,8 +1,9 @@
 {
   "name": "cs_pug_webext",
   "version": "1.0.0",
+  "description": "Extension de navigateur créée avec PureScript et Pug",
   "scripts": {
-    "build:init": "mkdirp dist",
+    "build:init": "mkdirp dist && cp assets dist/ -r",
     "build:pug": "pug templates/ -o dist/",
     "build:purescript": "spago build",
     "build:bundle": "node config/esbuild.config.js",

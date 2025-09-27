@@ -1,8 +1,7 @@
 {
-  "manifest_version": 2,
   "name": "Mon Extension PureScript",
-  "version": "1.0.0",
-  "description": "Extension de navigateur créée avec PureScript et Pug",
+  "{{chrome}}.manifest_version": 3,
+  "{{firefox}}.manifest_version": 2,
   "permissions": [
     "activeTab",
     "storage"
@@ -21,9 +20,9 @@
     "default_popup": "popup.html",
     "default_title": "Mon Extension",
     "default_icon": {
-      "16": "icons/icon16.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
+      "16": "assets/icons/icon16.png",
+      "48": "assets/icons/icon48.png",
+      "128": "assets/icons/icon128.png"
     }
   },
   "{{chrome}}.browser_action": {
