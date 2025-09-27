@@ -4,12 +4,11 @@
   "scripts": {
     "build:manifest": "mkdirp dist && cp manifest.json dist/manifest.json",
     "build:pug": "pug templates/ -o dist/",
-    "build:purescript": "spago bundle-app --main Main --to dist/js/main.js",
     "build:content": "spago bundle-app --main Content.Content --to dist/js/content.js",
     "build:background": "spago bundle-app --main Background.Background --to dist/js/background.js",
     "build:popup": "spago bundle-app --main Popup.Popup --to dist/js/popup.js",
-    "build": "npm run build:manifest && npm run build:pug && npm run build:purescript && npm run build:content && npm run build:background && npm run build:popup",
-    "watch": "npm run build:pug && spago bundle-app --watch --main Main --to dist/js/main.js"
+    "build": "npm run build:manifest && npm run build:pug && npm run build:content && npm run build:background && npm run build:popup",
+    "watch": "npm run build:manifest && npm run build:pug && spago bundle-app --watch --main Main --to dist/js/main.js"
   },
   "devDependencies": {
     "mkdirp": "^3.0.1",
