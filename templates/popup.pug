@@ -1,0 +1,59 @@
+doctype html
+html(lang="fr")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title Extension PureScript
+    style.
+        body {
+            width: 300px;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .button:hover {
+            background: #45a049;
+        }
+        .status {
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+  body
+    .header
+      h1 Mon Extension
+      p Powered by PureScript & Pug
+
+    .controls
+      button.button#actionBtn Action principale
+      button.button#settingsBtn Paramètres
+      button.button#aboutBtn À propos
+
+    .status#status(style="display: none;")
+      span#statusMessage
+
+    script(src="js/popup.js")
