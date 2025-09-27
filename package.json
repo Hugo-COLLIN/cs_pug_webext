@@ -4,13 +4,17 @@
   "scripts": {
     "build:manifest": "mkdirp dist && cp manifest.json dist/manifest.json",
     "build:pug": "pug templates/ -o dist/",
-    "build:content": "spago bundle-app --main Content.Content --to dist/js/content.js",
-    "build:background": "spago bundle-app --main Background.Background --to dist/js/background.js",
-    "build:popup": "spago bundle-app --main Popup.Popup --to dist/js/popup.js",
-    "build": "npm run build:manifest && npm run build:pug && npm run build:content && npm run build:background && npm run build:popup",
-    "watch": "npm run build:manifest && npm run build:pug && spago bundle-app --watch --main Main --to dist/js/main.js"
+    "build:purescript": "spago build",
+    "build:bundle": "node esbuild.config.js",
+    "build": "npm run build:manifest && npm run build:pug && npm run build:purescript && npm run build:bundle",
+    "watch:pug": "pug templates/ -o dist/ --watch",
+    "watch:purescript": "spago build --watch",
+    "watch:bundle": "node esbuild.config.js --watch",
+    "watch": "npm run build:manifest && concurrently \"npm run watch:pug\" \"npm run watch:purescript\" \"npm run watch:bundle\""
   },
   "devDependencies": {
+    "concurrently": "^8.2.2",
+    "esbuild": "^0.25.10",
     "mkdirp": "^3.0.1",
     "pug": "^3.0.3",
     "pug-cli": "^1.0.0-alpha6"
