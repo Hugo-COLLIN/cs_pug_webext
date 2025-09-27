@@ -1,5 +1,5 @@
 const esbuild = require('esbuild');
-const { generateManifestPlugin } = require('./config/esbuild/generateManifestPlugin');
+const { generateManifestPlugin } = require('./esbuild/generateManifestPlugin');
 
 // Plugin pour créer des entrées virtuelles
 const virtualEntryPlugin = {
