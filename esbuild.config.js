@@ -1,4 +1,5 @@
 const esbuild = require('esbuild');
+const { generateManifestPlugin } = require('./config/esbuild/generateManifestPlugin');
 
 // Plugin pour créer des entrées virtuelles
 const virtualEntryPlugin = {
@@ -73,7 +74,10 @@ const buildOptions = {
   target: 'es2017',
   minify: process.env.NODE_ENV === 'production',
   sourcemap: process.env.NODE_ENV !== 'production',
-  plugins: [virtualEntryPlugin]
+  plugins: [
+    virtualEntryPlugin,
+    generateManifestPlugin(process.env.TARGET_BROWSER || 'chrome')
+  ]
 };
 
 async function build() {

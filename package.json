@@ -2,7 +2,7 @@
   "name": "cs_pug_webext",
   "version": "1.0.0",
   "scripts": {
-    "build:manifest": "mkdirp dist && cp manifest.json dist/manifest.json",
+    "build:manifest": "mkdirp dist && cp src/manifest.json dist/manifest.json",
     "build:pug": "pug templates/ -o dist/",
     "build:purescript": "spago build",
     "build:bundle": "node esbuild.config.js",
@@ -10,10 +10,15 @@
     "watch:pug": "pug templates/ -o dist/ --watch",
     "watch:purescript": "spago build --watch",
     "watch:bundle": "node esbuild.config.js --watch",
-    "watch": "npm run build:manifest && concurrently \"npm run watch:pug\" \"npm run watch:purescript\" \"npm run watch:bundle\""
+    "watch": "npm run build:manifest && concurrently \"npm run watch:pug\" \"npm run watch:purescript\" \"npm run watch:bundle\"",
+    "build:chrome": "cross-env TARGET_BROWSER=chrome npm run build",
+    "build:firefox": "cross-env TARGET_BROWSER=firefox npm run build",
+    "dev:chrome": "cross-env TARGET_BROWSER=chrome npm run watch",
+    "dev:firefox": "cross-env TARGET_BROWSER=firefox npm run watch"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
+    "cross-env": "^10.0.0",
     "esbuild": "^0.25.10",
     "mkdirp": "^3.0.1",
     "pug": "^3.0.3",
