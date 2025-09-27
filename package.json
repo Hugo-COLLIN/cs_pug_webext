@@ -1,4 +1,9 @@
 {
+  "scripts": {
+    "build": "spago run && echo 'Static site generated in dist/'",
+    "dev": "spago run && python -m http.server 8000 --directory dist",
+    "clean": "rm -rf dist"
+  },
   "dependencies": {
     "pug": "^3.0.3"
   },

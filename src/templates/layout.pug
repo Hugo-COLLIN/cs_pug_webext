@@ -1,0 +1,23 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="utf-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title= title + " | " + site.title
+    if meta && meta.description
+      meta(name="description" content=meta.description)
+    if meta && meta.keywords && meta.keywords.length
+      meta(name="keywords" content=meta.keywords.join(", "))
+    link(rel="stylesheet" href="/style.css")
+  body
+    header
+      nav
+        a(href="/index.html")= site.title
+        ul
+          li: a(href="/index.html") Home
+          li: a(href="/about.html") About
+          li: a(href="/blog/index.html") Blog
+    main
+      block content
+    footer
+      p &copy; 2024 #{site.author}

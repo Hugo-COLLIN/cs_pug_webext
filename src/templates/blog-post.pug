@@ -1,0 +1,13 @@
+extends layout
+
+block content
+  article
+    header
+      h1= title
+      time(datetime=date)= date
+      if tags && tags.length
+        .tags
+          each tag in tags
+            span.tag= tag
+    .content
+      != content
