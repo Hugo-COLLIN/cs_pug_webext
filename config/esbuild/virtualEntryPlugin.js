@@ -30,10 +30,10 @@ if (typeof main === 'function') {
   try {
     main();
   } catch (error) {
-    console.error('Error initializing ${entry.module}:', error);
+    console.error('Error initializing module:', error);
   }
 } else {
-  console.error('main function not found in ${entry.module}');
+  console.error('main function not found');
 }`;
 
         return {
