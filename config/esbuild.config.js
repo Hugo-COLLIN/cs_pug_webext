@@ -1,8 +1,19 @@
 const esbuild = require('esbuild');
 const { virtualEntryPlugin } = require('./esbuild/virtualEntryPlugin');
 const { generateManifestPlugin } = require('./esbuild/generateManifestPlugin');
+const {copy} = require('esbuild-plugin-copy');
 
 const outdir = 'dist';
+const staticAssetsConfig = [
+  {
+    from: 'assets/**/*',
+    to: './assets',
+  },
+  {
+    from: ['./LICENSE'],
+    to: ['./'],
+  }
+];
 
 const buildOptions = {
   entryPoints: {
@@ -19,7 +30,11 @@ const buildOptions = {
   sourcemap: process.env.NODE_ENV !== 'production',
   plugins: [
     virtualEntryPlugin,
-    generateManifestPlugin(process.env.TARGET_BROWSER || 'chrome')
+    generateManifestPlugin(process.env.TARGET_BROWSER || 'chrome'),
+    copy({
+      assets: staticAssetsConfig,
+      watch: true,
+    }),
   ]
 };
 
