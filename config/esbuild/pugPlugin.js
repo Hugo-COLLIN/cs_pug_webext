@@ -17,7 +17,10 @@ function pugPlugin(pugEntryPoints = [], watchMode = false) {
       });
 
       // Transformer les chemins des scripts dans le HTML généré
-      const transformedHtml = html.replace(/src="([^"]+)\.purs"/g, 'src="../dist/js/$1.js"');
+      const transformedHtml = html.replace(
+        /src="([^"]+)\.purs"/g,
+        (match, p1) => `src="../js/${p1.toLowerCase()}.js"`
+      );
 
       // Nom du fichier sans extension et sans chemin
       const fileName = path.basename(pugFile, '.pug') + '.html';
