@@ -1,27 +1,8 @@
 // Plugin to create virtual entries
-function virtualEntryPlugin(dynamicEntries = {}) {
+function virtualEntryPlugin(entries = {}) {
   return {
     name: 'virtual-entry',
     setup(build) {
-      // Fusionner les entrées par défaut avec les entrées dynamiques
-      const entries = {
-        // Entrées par défaut (fallback si rien n'est trouvé dans le manifest)
-        'virtual:popup': {
-          module: 'Popup.Popup',
-          resolveDir: process.cwd()
-        },
-        'virtual:background': {
-          module: 'Background.Background',
-          resolveDir: process.cwd()
-        },
-        'virtual:content': {
-          module: 'Content.Content',
-          resolveDir: process.cwd()
-        },
-        // Fusionner avec les entrées dynamiques du manifest
-        ...dynamicEntries
-      };
-
       // Intercept the resolution of virtual inputs
       build.onResolve({ filter: /^virtual:/ }, args => {
         return {
