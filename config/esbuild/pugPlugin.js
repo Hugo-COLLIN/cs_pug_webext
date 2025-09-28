@@ -16,42 +16,42 @@ function pugPlugin(pugEntryPoints = [], watchMode = false) {
         basedir: path.dirname(pugFile)
       });
 
-      // Transformer les chemins des scripts dans le HTML généré
+      // Transform script paths in the generated HTML
       const transformedHtml = html.replace(
         /src="([^"]+)\.purs"/g,
         (match, p1) => `src="../js/${p1.toLowerCase()}.js"`
       );
 
-      // Nom du fichier sans extension et sans chemin
+      // File name without extension and path
       const fileName = path.basename(pugFile, '.pug') + '.html';
 
-      // Chemin de sortie dans le dossier html/
+      // Output path is the html/ directory
       const outputDir = path.join('dist', 'html');
       const outputPath = path.join(outputDir, fileName)
 
-      // Créer le dossier html/ s'il n'existe pas
+      // Create the html/ folder if it does not exist
       try {
         await fs.promises.mkdir(outputDir, { recursive: true });
       } catch (error) {
         if (error.code === 'EEXIST') {
-          // Vérifier si c'est un fichier au lieu d'un dossier
+          // Check if it’s a file instead of a folder
           const stats = await fs.promises.stat('html');
           if (!stats.isDirectory()) {
-            console.error('❌ Un fichier nommé "html" existe déjà. Supprimez-le ou renommez-le.');
-            throw new Error('Un fichier nommé "html" bloque la création du dossier');
+            console.error('❌ A file named "html" already exists. Delete it or rename it.');
+            throw new Error('A file named "html" blocks the creation of the folder');
           }
-          // Si c'est déjà un dossier, continuer normalement
+          // If it is already a file, continue normally
         } else {
           throw error;
         }
       }
 
-      // Écrire le fichier HTML
+      // Write the HTML file
       await fs.promises.writeFile(outputPath, transformedHtml);
-      console.log(`✅ HTML généré: ${outputPath}`);
+      console.log(`✅ HTML generated: ${outputPath}`);
       compiledFiles.add(outputPath);
     } catch (error) {
-      console.error(`❌ Erreur Pug dans ${pugFile}:`, error.message);
+      console.error(`❌ Pug error in ${pugFile}:`, error.message);
       throw error;
     }
   }
@@ -59,9 +59,9 @@ function pugPlugin(pugEntryPoints = [], watchMode = false) {
   return {
     name: 'pug',
     setup(build) {
-      // Compilation initiale
+      // Initial compilation
       build.onStart(async () => {
-        // Traiter uniquement les entry points Pug spécifiés
+        // Process only the specified Pug entry points
         for (const pugFile of pugEntryPoints) {
           if (fs.existsSync(pugFile)) {
             await compilePugFile(pugFile);
@@ -69,37 +69,37 @@ function pugPlugin(pugEntryPoints = [], watchMode = false) {
         }
       });
 
-      // Configuration du mode watch si activé
+      // Configuration of the watch mode if activated
       if (watchMode) {
         build.onStart(async () => {
-          // Surveiller les fichiers Pug pour les changements
+          // Monitor Pug files for changes
           for (const pugFile of pugEntryPoints) {
             if (fs.existsSync(pugFile)) {
               // Surveiller le fichier principal
               fs.watchFile(pugFile, { interval: 1000 }, async (curr, prev) => {
                 if (curr.mtime > prev.mtime) {
-                  console.log(`🔄 Changement détecté dans ${path.relative(process.cwd(), pugFile)}`);
+                  console.log(`🔄 Change detected in ${path.relative(process.cwd(), pugFile)}`);
                   try {
                     await compilePugFile(pugFile);
                   } catch (error) {
-                    console.error(`❌ Erreur lors de la recompilation de ${pugFile}:`, error.message);
+                    console.error(`❌ Error while recomplying of ${pugFile}:`, error.message);
                   }
                 }
               });
 
-              // Surveiller aussi le dossier contenant le fichier pug pour détecter les includes/extends
+              // Also monitor the folder containing the pug file to detect includes/extends
               const pugDir = path.dirname(pugFile);
               if (fs.existsSync(pugDir)) {
                 fs.watch(pugDir, { recursive: true }, async (eventType, filename) => {
                   if (filename && filename.endsWith('.pug')) {
                     const changedFile = path.join(pugDir, filename);
-                    console.log(`🔄 Changement détecté dans ${path.relative(process.cwd(), changedFile)}`);
+                    console.log(`🔄 Change detected in ${path.relative(process.cwd(), changedFile)}`);
 
-                    // Recompiler le fichier principal (car il pourrait inclure le fichier modifié)
+                    // Recompile the main file (as it might include the modified file)
                     try {
                       await compilePugFile(pugFile);
                     } catch (error) {
-                      console.error(`❌ Erreur lors de la recompilation de ${pugFile}:`, error.message);
+                      console.error(`❌ Error while recomplying of ${pugFile}:`, error.message);
                     }
                   }
                 });
@@ -108,13 +108,13 @@ function pugPlugin(pugEntryPoints = [], watchMode = false) {
           }
 
           if (pugEntryPoints.length > 0) {
-            console.log(`👀 Mode watch activé pour ${pugEntryPoints.length} fichier(s) Pug`);
+            console.log(`👀 Watch mode activated for ${pugEntryPoints.length} Pug file(s)`);
           }
         });
 
-        // Nettoyer les watchers à la fermeture
+        // Clean the watchers at closing time
         process.on('SIGINT', () => {
-          console.log('\n🛑 Arrêt du watch mode Pug...');
+          console.log('\n🛑 Stopping watch mode Pug...');
           // Arrêter tous les watchers
           for (const pugFile of pugEntryPoints) {
             if (fs.existsSync(pugFile)) {

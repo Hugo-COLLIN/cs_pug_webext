@@ -1,11 +1,11 @@
 const fs = require('fs');
 
-// Extraction générique des entry points depuis le manifest
+// Generic extraction of entry points from the manifest
 function getEntryPointsFromManifest() {
   const manifestPath = `src/manifest.json`;
 
   if (!fs.existsSync(manifestPath)) {
-    console.warn(`⚠️  Manifest non trouvé: ${manifestPath}`);
+    console.warn(`⚠️  Manifest not found: ${manifestPath}`);
     return { entryPoints: {}, pugFiles: [] };
   }
 
@@ -14,17 +14,17 @@ function getEntryPointsFromManifest() {
   const pugFiles = [];
   const virtualEntries = {};
 
-  // Fonction utilitaire pour ajouter un fichier s'il existe et est un fichier source
+  // Utility function to add a file if it exists and is a source file
   function addSourceFile(filePath, context = '') {
     if (!filePath || typeof filePath !== 'string') return;
 
-    // Nettoyer le chemin (enlever "src/" si présent au début)
+    // Clean the path (remove "src/" if present at the beginning)
     const cleanPath = filePath.startsWith('src/') ? filePath.substring(4) : filePath;
     const fullPath = `src/${cleanPath}`;
 
-    // Vérifier si c'est un fichier source (.purs ou .pug)
+    // Check if it is a source file (.purs or .pug)
     if (cleanPath.endsWith('.purs')) {
-      // Déterminer le type de module basé sur le répertoire
+      // Determine the type of module based on the directory
       const moduleName = cleanPath.split('/')[0].toLowerCase(); // Background, Content, Popup
       const outputName = `js/${moduleName}`;
       const virtualKey = `virtual:${moduleName}`;
@@ -35,53 +35,53 @@ function getEntryPointsFromManifest() {
           module: cleanPath.replace('.purs', '').replace('/', '.'),
           resolveDir: process.cwd()
         };
-        console.log(`✅ Entry point PURS trouvé: ${cleanPath} -> ${virtualKey}`);
+        console.log(`✅ Entry point PURS found: ${cleanPath} -> ${virtualKey}`);
       } else {
-        console.warn(`⚠️  Entry point PURS manquant: ${fullPath}`);
+        console.warn(`⚠️  Entry point PURS missing: ${fullPath}`);
       }
     } else if (cleanPath.endsWith('.pug')) {
       if (fs.existsSync(fullPath)) {
         pugFiles.push(fullPath);
-        console.log(`✅ Fichier PUG trouvé: ${fullPath}`);
+        console.log(`✅ PUG file found: ${fullPath}`);
 
-        // Chercher le fichier .purs correspondant
+        // Search for the matching . pure file
         const correspondingPursPath = cleanPath.replace('.pug', '.purs');
         const correspondingFullPath = `src/${correspondingPursPath}`;
 
         if (fs.existsSync(correspondingFullPath)) {
-          // Déterminer le type de module basé sur le répertoire
+          // Determine the type of module based on the directory
           const moduleName = correspondingPursPath.split('/')[0].toLowerCase();
           const outputName = `js/${moduleName}`;
           const virtualKey = `virtual:${moduleName}`;
 
-          // Éviter les doublons si le .purs a déjà été ajouté
+          // Avoid duplicates if the . pure has already been added
           if (!entryPoints[outputName]) {
             entryPoints[outputName] = virtualKey;
             virtualEntries[virtualKey] = {
               module: correspondingPursPath.replace('.purs', '').replace('/', '.'),
               resolveDir: process.cwd()
             };
-            console.log(`✅ Entry point PURS correspondant trouvé: ${correspondingPursPath} -> ${virtualKey}`);
+            console.log(`✅ Corresponding PURS entry point found: ${correspondingPursPath} -> ${virtualKey}`);
           }
         } else {
-          console.log(`ℹ️  Aucun fichier .purs correspondant trouvé pour: ${cleanPath}`);
+          console.log(`ℹ️  No matching .purs file found for: ${cleanPath}`);
         }
       } else {
-        console.warn(`⚠️  Fichier PUG manquant: ${fullPath}`);
+        console.warn(`⚠️  Missing PUG file: ${fullPath}`);
       }
     }
   }
 
-  // Fonction récursive pour parcourir toutes les propriétés du manifest
+  // Recursive function to browse all the manifest properties
   function scanManifestProperties(obj, path = '') {
     for (const [key, value] of Object.entries(obj)) {
       const currentPath = path ? `${path}.${key}` : key;
 
       if (typeof value === 'string') {
-        // Traiter les chemins de fichiers directs
+        // Process direct file paths
         addSourceFile(value, currentPath);
       } else if (Array.isArray(value)) {
-        // Traiter les tableaux de fichiers
+        // Process file tables
         value.forEach(item => {
           if (typeof item === 'string') {
             addSourceFile(item, currentPath);
@@ -90,17 +90,17 @@ function getEntryPointsFromManifest() {
           }
         });
       } else if (typeof value === 'object' && value !== null) {
-        // Récursion pour les objets imbriqués
+        // Recursion for nested objects
         scanManifestProperties(value, currentPath);
       }
     }
   }
 
-  // Scanner tout le manifest
+  // Scan all the manifest
   scanManifestProperties(manifest);
 
-  console.log('📄 Entry points détectés:', entryPoints);
-  console.log('📄 Fichiers PUG détectés:', pugFiles);
+  console.log('📄 Entry points detected:', entryPoints);
+  console.log('📄 PUG files detected:', pugFiles);
 
   return { entryPoints, pugFiles, virtualEntries };
 }

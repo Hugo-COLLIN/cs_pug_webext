@@ -1,13 +1,13 @@
 const path = require('path');
 const fs = require('fs');
 
-// Utilitaires JSON
+// JSON utilities
 function readJsonFile(filePath) {
   try {
     const content = fs.readFileSync(filePath, 'utf8');
     return JSON.parse(content);
   } catch (error) {
-    console.warn(`⚠️  Impossible de lire ${filePath}:`, error.message);
+    console.warn(`⚠️  Unable to read ${filePath}:`, error.message);
     return {};
   }
 }
@@ -18,16 +18,16 @@ function writeJsonFile(filePath, data) {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
 
-// Fonction pour convertir les chemins source vers les chemins de sortie
+// Function to convert source paths to output paths
 function convertSourcePathToOutput(sourcePath) {
   if (!sourcePath || typeof sourcePath !== 'string') {
     return sourcePath;
   }
 
-  // Récupérer uniquement le nom du fichier (ex: "foo.purs")
+  // Retrieve only the file name (ex: "foo.purs")
   const fileName = path.basename(sourcePath);
 
-  // Convertir les chemins source en chemins de sortie
+  // Convert source paths to output paths
   if (sourcePath.endsWith(".purs")) {
     // js/<file_name>.js
     return `js/${fileName.toLowerCase().replace(/\.purs$/, ".js")}`;
@@ -54,18 +54,18 @@ function generateManifestPlugin(targetBrowser, version) {
           const srcManifest = readJsonFile(srcManifestPath);
           const pkg = readJsonFile(pkgPath);
 
-          console.log(`📋 Génération du manifest pour ${targetBrowser}...`);
+          console.log(`📋 Generating manifest for ${targetBrowser}...`);
 
-          // Manifest de base avec valeurs par défaut
+          // Basic manifest with default values
           let manifest = {
             manifest_version: srcManifest[`{{${targetBrowser}}}.manifest_version`] || (targetBrowser === 'firefox' ? 2 : 3),
-            name: srcManifest.name || pkg.name || 'Mon Extension',
+            name: srcManifest.name || pkg.name || 'My Extension',
             version: version || srcManifest.version || pkg.version || '1.0.0',
-            description: srcManifest.description || pkg.description || 'Extension développée avec PureScript et Pug',
+            description: srcManifest.description || pkg.description || 'Extension developed with PureScript and Pug',
             homepage_url: srcManifest.homepage_url || pkg.homepage,
           };
 
-          // Fonction pour traiter récursivement les propriétés avec syntaxe {{browser}}
+          // Function to recursively process properties with {{browser}} syntax
           function processObject(obj, targetObj) {
             for (const key in obj) {
               if (!obj.hasOwnProperty(key)) continue;
@@ -73,7 +73,7 @@ function generateManifestPlugin(targetBrowser, version) {
               const isBrowserSpecificKey = key.startsWith(`{{${targetBrowser}}}`);
               const isOtherBrowserKey = key.startsWith('{{') && !isBrowserSpecificKey;
 
-              // Ignorer les clés d'autres navigateurs
+              // Ignore other browsers' keys
               if (isOtherBrowserKey) continue;
 
               let manifestKey;
@@ -91,7 +91,7 @@ function generateManifestPlugin(targetBrowser, version) {
                 targetObj[manifestKey] = {};
                 processObject(value, targetObj[manifestKey]);
               } else if (Array.isArray(value)) {
-                // Traiter les tableaux (comme content_scripts[].js)
+                // Process arrays (like content_scripts[].js)
                 targetObj[manifestKey] = value.map(item => {
                   if (typeof item === 'object' && item !== null) {
                     const processedItem = {};
@@ -103,7 +103,7 @@ function generateManifestPlugin(targetBrowser, version) {
                   return item;
                 });
               } else if (typeof value === 'string') {
-                // Convertir les chemins source en chemins de sortie
+                // Convert source paths to output paths
                 targetObj[manifestKey] = convertSourcePathToOutput(value);
               } else {
                 targetObj[manifestKey] = value;
@@ -111,12 +111,12 @@ function generateManifestPlugin(targetBrowser, version) {
             }
           }
 
-          // Traiter le manifest source
+          // Process the source manifest
           processObject(srcManifest, manifest);
 
-          // Adaptations spécifiques par navigateur
+          // Specific browser adaptations
           if (targetBrowser === 'firefox') {
-            // Convertir service_worker vers scripts pour Firefox Manifest V2
+            // Convert service_worker to scripts for Firefox Manifest V2
             if (manifest.background && manifest.background.service_worker) {
               manifest.background = {
                 scripts: [manifest.background.service_worker],
@@ -124,13 +124,13 @@ function generateManifestPlugin(targetBrowser, version) {
               };
             }
 
-            // Convertir action vers browser_action pour Firefox
+            // Convert action to browser_action for Firefox
             if (manifest.action) {
               manifest.browser_action = manifest.action;
               delete manifest.action;
             }
 
-            // Adapter options_page pour Firefox
+            // Adapt options_page for Firefox
             if (manifest.options_page) {
               manifest.options_ui = {
                 page: manifest.options_page,
@@ -140,7 +140,7 @@ function generateManifestPlugin(targetBrowser, version) {
             }
           }
 
-          // Nettoyer les propriétés vides
+          // Clean up empty properties
           function cleanEmptyProperties(obj) {
             Object.keys(obj).forEach(key => {
               const value = obj[key];
@@ -158,9 +158,9 @@ function generateManifestPlugin(targetBrowser, version) {
           cleanEmptyProperties(manifest);
 
           writeJsonFile(distManifestPath, manifest);
-          console.log(`✅  Manifest généré: ${distManifestPath}`);
+          console.log(`✅  Manifest generated: ${distManifestPath}`);
         } catch (error) {
-          console.error('❌  Erreur génération manifest:', error.message);
+          console.error('❌  Manifest generation error:', error.message);
           throw error;
         }
       });

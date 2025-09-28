@@ -20,7 +20,6 @@ const staticAssetsConfig = [
   }
 ];
 
-// Obtenir les points d'entrée depuis le manifest
 const manifestData = getEntryPointsFromManifest();
 
 const buildOptions = {

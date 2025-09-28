@@ -6,7 +6,7 @@ function cleanDirectoryPlugin(directory) {
     setup(build) {
       build.onStart(() => {
         if (fs.existsSync(directory)) {
-          console.log(`🧹 Nettoyage du dossier ${directory}...`);
+          console.log(`🧹 Cleaning directory ${directory}...`);
           fs.rmSync(directory, { recursive: true });
         }
         fs.mkdirSync(directory, { recursive: true });
