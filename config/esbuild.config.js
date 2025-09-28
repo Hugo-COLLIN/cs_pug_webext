@@ -30,8 +30,8 @@ const buildOptions = {
   format: 'iife',
   platform: 'browser',
   target: 'es2017',
-  minify: process.env.NODE_ENV === 'production' && process.env.TARGET !== 'firefox',
-  sourcemap: process.env.NODE_ENV !== 'production',
+  minify: process.env.APP_MODE === 'prod' && process.env.TARGET_BROWSER !== 'firefox',
+  sourcemap: process.env.APP_MODE !== 'prod',
   plugins: [
     cleanDirectoryPlugin(outdir),
     virtualEntryPlugin(manifestData.virtualEntries), // Passer les virtualEntries au plugin

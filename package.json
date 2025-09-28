@@ -11,14 +11,18 @@
     "watch": "concurrently \"npm run watch:purescript\" \"npm run watch:bundle\"",
     "build:chrome": "cross-env TARGET_BROWSER=chrome npm run build",
     "build:firefox": "cross-env TARGET_BROWSER=firefox npm run build",
-    "dev:chrome": "cross-env TARGET_BROWSER=chrome npm run watch",
-    "dev:firefox": "cross-env TARGET_BROWSER=firefox npm run watch"
+    "dev:chrome": "cross-env APP_MODE=dev TARGET_BROWSER=chrome npm run watch",
+    "dev:firefox": "cross-env APP_MODE=dev TARGET_BROWSER=firefox npm run watch",
+    "prod:chrome": "cross-env TARGET_BROWSER=chrome APP_MODE=prod node config/esbuild.config.js && cross-env TARGET_BROWSER=chrome node config/zip.js",
+    "prod:firefox": "cross-env TARGET_BROWSER=firefox APP_MODE=prod node config/esbuild.config.js && cross-env TARGET_BROWSER=firefox node config/zip.js",
+    "prod": "npm run prod:chrome && npm run prod:firefox"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
     "cross-env": "^10.0.0",
     "esbuild": "^0.25.10",
     "esbuild-plugin-copy": "^2.1.1",
-    "pug": "^3.0.3"
+    "pug": "^3.0.3",
+    "zip-a-folder": "^3.1.9"
   }
 }
