@@ -1,7 +1,9 @@
 const esbuild = require('esbuild');
 const { virtualEntryPlugin } = require('./esbuild/virtualEntryPlugin');
+const { pugPlugin } = require('./esbuild/pugPlugin');
 const { generateManifestPlugin } = require('./esbuild/generateManifestPlugin');
 const {copy} = require('esbuild-plugin-copy');
+
 
 const outdir = 'dist';
 const staticAssetsConfig = [
@@ -30,6 +32,7 @@ const buildOptions = {
   sourcemap: process.env.NODE_ENV !== 'production',
   plugins: [
     virtualEntryPlugin,
+    pugPlugin(['src/Popup/popup.pug']),
     generateManifestPlugin(process.env.TARGET_BROWSER || 'chrome'),
     copy({
       assets: staticAssetsConfig,
