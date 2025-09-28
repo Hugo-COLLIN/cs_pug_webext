@@ -19,7 +19,6 @@
     "cross-env": "^10.0.0",
     "esbuild": "^0.25.10",
     "esbuild-plugin-copy": "^2.1.1",
-    "mkdirp": "^3.0.1",
     "pug": "^3.0.3"
   }
 }
