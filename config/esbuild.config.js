@@ -6,6 +6,7 @@ const {copy} = require('esbuild-plugin-copy');
 
 
 const outdir = 'dist';
+const watchMode = process.argv.includes('--watch');
 const staticAssetsConfig = [
   {
     from: 'assets/**/*',
@@ -32,11 +33,11 @@ const buildOptions = {
   sourcemap: process.env.NODE_ENV !== 'production',
   plugins: [
     virtualEntryPlugin,
-    pugPlugin(['src/Popup/popup.pug']),
+    pugPlugin(['src/Popup/popup.pug'], watchMode),
     generateManifestPlugin(process.env.TARGET_BROWSER || 'chrome'),
     copy({
       assets: staticAssetsConfig,
-      watch: true,
+      watch: watchMode,
     }),
   ]
 };
