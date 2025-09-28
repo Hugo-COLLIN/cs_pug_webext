@@ -18,6 +18,29 @@ function writeJsonFile(filePath, data) {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
 
+// Fonction pour convertir les chemins source vers les chemins de sortie
+function convertSourcePathToOutput(sourcePath) {
+  if (!sourcePath || typeof sourcePath !== 'string') {
+    return sourcePath;
+  }
+
+  // Récupérer uniquement le nom du fichier (ex: "foo.purs")
+  const fileName = path.basename(sourcePath);
+
+  // Convertir les chemins source en chemins de sortie
+  if (sourcePath.endsWith(".purs")) {
+    // js/<file_name>.js
+    return `js/${fileName.toLowerCase().replace(/\.purs$/, ".js")}`;
+  }
+
+  if (sourcePath.endsWith(".pug")) {
+    // html/<file_name>.html
+    return `html/${fileName.toLowerCase().replace(/\.pug$/, ".html")}`;
+  }
+
+  return sourcePath;
+}
+
 function generateManifestPlugin(targetBrowser, version) {
   return {
     name: 'generate-manifest',
@@ -67,6 +90,21 @@ function generateManifestPlugin(targetBrowser, version) {
               if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
                 targetObj[manifestKey] = {};
                 processObject(value, targetObj[manifestKey]);
+              } else if (Array.isArray(value)) {
+                // Traiter les tableaux (comme content_scripts[].js)
+                targetObj[manifestKey] = value.map(item => {
+                  if (typeof item === 'object' && item !== null) {
+                    const processedItem = {};
+                    processObject(item, processedItem);
+                    return processedItem;
+                  } else if (typeof item === 'string') {
+                    return convertSourcePathToOutput(item);
+                  }
+                  return item;
+                });
+              } else if (typeof value === 'string') {
+                // Convertir les chemins source en chemins de sortie
+                targetObj[manifestKey] = convertSourcePathToOutput(value);
               } else {
                 targetObj[manifestKey] = value;
               }

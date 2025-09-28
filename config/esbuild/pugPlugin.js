@@ -25,11 +25,11 @@ function pugPlugin(pugEntryPoints = [], watchMode = false) {
       // Nom du fichier sans extension et sans chemin
       const fileName = path.basename(pugFile, '.pug') + '.html';
 
-      // Chemin de sortie dans le dossier pages/
-      const outputDir = path.join('dist', 'pages');
+      // Chemin de sortie dans le dossier html/
+      const outputDir = path.join('dist', 'html');
       const outputPath = path.join(outputDir, fileName)
 
-      // Créer le dossier pages/ s'il n'existe pas
+      // Créer le dossier html/ s'il n'existe pas
       try {
         await fs.promises.mkdir(outputDir, { recursive: true });
       } catch (error) {
