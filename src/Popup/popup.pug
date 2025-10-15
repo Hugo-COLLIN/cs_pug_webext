@@ -3,6 +3,7 @@ html(lang="fr")
   head
     meta(charset="UTF-8")
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    script(defer, src="../js/alpinejs-csp.js")
     title Extension PureScript
     style.
         body {
@@ -34,6 +35,7 @@ html(lang="fr")
             margin-top: 15px;
             padding: 10px;
             border-radius: 4px;
+            display: none;
         }
         .status.success {
             background: #d4edda;
@@ -43,17 +45,73 @@ html(lang="fr")
             background: #f8d7da;
             color: #721c24;
         }
-  body
+        .status.show {
+            display: block;
+        }
+
+  body(x-data="popupData()")
     .header
       h1 Mon Extension
       p Powered by PureScript & Pug
 
     .controls
-      button.button#actionBtn Action principale
-      button.button#settingsBtn Paramètres
-      button.button#aboutBtn About
+      button.button(x-on:click="handleMainAction") Action principale
+      button.button(x-on:click="handleSettingsAction") Paramètres
+      button.button(x-on:click="handleAboutAction") About
 
-    .status#status(style="display: none;")
-      span#statusMessage
+    .status(x-bind:class="getStatusClasses()" x-show="isStatusVisible")
+      span(x-text="statusMessage")
 
-    script(src="Popup.purs")
+    script.
+      function popupData() {
+        return {
+          statusMessage: '',
+          statusType: '',
+          isStatusVisible: false,
+
+          // Méthode pour calculer les classes CSS
+          getStatusClasses: function() {
+            var classes = 'status';
+            if (this.statusType) {
+              classes += ' ' + this.statusType;
+            }
+            if (this.isStatusVisible) {
+              classes += ' show';
+            }
+            return classes;
+          },
+
+          // Méthode d'initialisation
+          init: function() {
+            console.log('🚀 Popup Alpine CSP initialisé');
+          },
+
+          // Méthode pour afficher un statut
+          showStatus: function(message, type) {
+            this.statusMessage = message;
+            this.statusType = type;
+            this.isStatusVisible = true;
+
+            var self = this;
+            setTimeout(function() {
+              self.isStatusVisible = false;
+            }, 3000);
+          },
+
+          // Gestionnaires d'événements
+          handleMainAction: function() {
+            console.log('Action principale déclenchée');
+            this.showStatus('Action exécutée avec succès!', 'success');
+          },
+
+          handleSettingsAction: function() {
+            console.log('Ouverture des paramètres');
+            this.showStatus('Paramètres en cours de développement', 'error');
+          },
+
+          handleAboutAction: function() {
+            console.log('À propos de l\'extension');
+            this.showStatus('Extension PureScript v1.0.0', 'success');
+          }
+        };
+      }
