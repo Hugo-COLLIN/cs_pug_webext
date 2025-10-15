@@ -3,6 +3,7 @@ const { cleanDirectoryPlugin } = require('./esbuild/cleanDirectoryPlugin');
 const { virtualEntryPlugin } = require('./esbuild/virtualEntryPlugin');
 const { pugPlugin } = require('./esbuild/pugPlugin');
 const { generateManifestPlugin } = require('./esbuild/generateManifestPlugin');
+const { copyNpmDependenciesPlugin } = require('./esbuild/copyNpmDependenciesPlugin');
 const { copy } = require('esbuild-plugin-copy');
 const { getEntryPointsFromManifest } = require('./esbuild/getEntryPoints');
 
@@ -35,6 +36,9 @@ const buildOptions = {
     cleanDirectoryPlugin(outdir),
     virtualEntryPlugin(manifestData.virtualEntries), // Passer les virtualEntries au plugin
     pugPlugin(manifestData.pugFiles, watchMode),
+    copyNpmDependenciesPlugin({
+      outputDir: 'dist/js',
+    }),
     generateManifestPlugin(process.env.TARGET_BROWSER || 'chrome'),
     copy({
       assets: staticAssetsConfig,
