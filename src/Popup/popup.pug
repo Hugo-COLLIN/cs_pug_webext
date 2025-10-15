@@ -55,9 +55,21 @@ html(lang="fr")
       p Powered by PureScript & Pug
 
     .controls
-      button.button(x-on:click="handleMainAction") Action principale
-      button.button(x-on:click="handleSettingsAction") Paramètres
-      button.button(x-on:click="handleAboutAction") About
+      button.button(
+        data-message="Action exécutée avec succès!"
+        data-type="success"
+        x-on:click="showStatus($event.target.dataset.message, $event.target.dataset.type)"
+      ) Action principale
+      button.button(
+        data-message="Paramètres en cours de développement"
+        data-type="error"
+        x-on:click="showStatus($event.target.dataset.message, $event.target.dataset.type)"
+      ) Paramètres
+      button.button(
+        data-message="Extension PureScript v1.0.0"
+        data-type="success"
+        x-on:click="showStatus($event.target.dataset.message, $event.target.dataset.type)"
+      ) About
 
     .status(x-bind:class="getStatusClasses()" x-show="isStatusVisible")
       span(x-text="statusMessage")
@@ -96,22 +108,6 @@ html(lang="fr")
             setTimeout(function() {
               self.isStatusVisible = false;
             }, 3000);
-          },
-
-          // Gestionnaires d'événements
-          handleMainAction: function() {
-            console.log('Action principale déclenchée');
-            this.showStatus('Action exécutée avec succès!', 'success');
-          },
-
-          handleSettingsAction: function() {
-            console.log('Ouverture des paramètres');
-            this.showStatus('Paramètres en cours de développement', 'error');
-          },
-
-          handleAboutAction: function() {
-            console.log('À propos de l\'extension');
-            this.showStatus('Extension PureScript v1.0.0', 'success');
           }
         };
       }
