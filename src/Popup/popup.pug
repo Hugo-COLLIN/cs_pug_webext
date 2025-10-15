@@ -54,22 +54,20 @@ html(lang="fr")
       h1 Mon Extension
       p Powered by PureScript & Pug
 
+    -
+      var buttons = [
+         { label: 'Action principale', message: 'Action exécutée avec succès!', type: 'success' },
+         { label: 'Paramètres', message: 'Paramètres en cours de développement', type: 'error' },
+         { label: 'About', message: 'Extension PureScript v1.0.0', type: 'success' }
+       ]
+
     .controls
-      button.button(
-        data-message="Action exécutée avec succès!"
-        data-type="success"
-        x-on:click="showStatus($event.target.dataset.message, $event.target.dataset.type)"
-      ) Action principale
-      button.button(
-        data-message="Paramètres en cours de développement"
-        data-type="error"
-        x-on:click="showStatus($event.target.dataset.message, $event.target.dataset.type)"
-      ) Paramètres
-      button.button(
-        data-message="Extension PureScript v1.0.0"
-        data-type="success"
-        x-on:click="showStatus($event.target.dataset.message, $event.target.dataset.type)"
-      ) About
+      each button in buttons
+        button.button(
+          data-message=button.message
+          data-type=button.type
+          x-on:click="showStatus($event.target.dataset.message, $event.target.dataset.type)"
+        )= button.label
 
     .status(x-bind:class="getStatusClasses()" x-show="isStatusVisible")
       span(x-text="statusMessage")
