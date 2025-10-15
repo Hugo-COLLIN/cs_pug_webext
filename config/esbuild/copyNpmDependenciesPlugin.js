@@ -1,4 +1,3 @@
-// config/esbuild/copyNpmDependenciesPlugin.js
 const fs = require('fs');
 const path = require('path');
 
@@ -33,18 +32,34 @@ function copyNpmDependenciesPlugin(options = {}) {
             const depPath = path.join(nodeModulesPath, depName);
 
             if (!fs.existsSync(depPath)) {
-              console.warn(`  ⚠️  ${depName} non trouvé`);
+              console.warn(`  ⚠️  ${depName} non trouvé dans ${depPath}`);
               continue;
             }
 
             const jsFile = findUsableJSFile(depPath, depName);
 
             if (jsFile) {
-              const destFile = path.join(fullOutputDir, `${depName}.js`);
+              // Générer un nom de fichier propre pour les packages avec scope
+              const cleanDepName = getCleanPackageName(depName);
+              const destFile = path.join(fullOutputDir, `${cleanDepName}.js`);
+
               fs.copyFileSync(jsFile, destFile);
-              console.log(`  ✅ ${depName}.js (${path.relative(depPath, jsFile)})`);
+              console.log(`  ✅ ${cleanDepName}.js (${path.relative(depPath, jsFile)})`);
             } else {
               console.warn(`  ⚠️  Aucun fichier JS utilisable pour ${depName}`);
+
+              // Debug: lister les fichiers disponibles
+              console.log(`  📁 Contenu de ${depPath}:`);
+              try {
+                const files = fs.readdirSync(depPath);
+                files.forEach(file => {
+                  const filePath = path.join(depPath, file);
+                  const stats = fs.statSync(filePath);
+                  console.log(`    ${stats.isDirectory() ? '📁' : '📄'} ${file}`);
+                });
+              } catch (error) {
+                console.log(`    ❌ Impossible de lire le contenu: ${error.message}`);
+              }
             }
           }
 
@@ -57,14 +72,22 @@ function copyNpmDependenciesPlugin(options = {}) {
   };
 }
 
+function getCleanPackageName(depName) {
+  // Convertir @alpinejs/csp en alpinejs-csp
+  if (depName.startsWith('@')) {
+    return depName.substring(1).replace('/', '-');
+  }
+  return depName;
+}
+
 function findUsableJSFile(depPath, depName) {
-  // Liste des fichiers à chercher par ordre de priorité
+  // Liste générale des fichiers à chercher par ordre de priorité
   const candidates = [
-    // Versions UMD spécifiques (ajout des patterns pour petite-vue et similaires)
-    `dist/${depName}.umd.js`,
-    `dist/${depName}.umd.min.js`,
-    `umd/${depName}.js`,
-    `umd/${depName}.min.js`,
+    // Versions UMD spécifiques
+    `dist/${path.basename(depName)}.umd.js`,
+    `dist/${path.basename(depName)}.umd.min.js`,
+    `umd/${path.basename(depName)}.js`,
+    `umd/${path.basename(depName)}.min.js`,
 
     // Versions browser/UMD génériques
     'dist/umd/index.js',
@@ -77,24 +100,24 @@ function findUsableJSFile(depPath, depName) {
     'dist/cdn.js',
     'cdn.js',
 
-    // Versions globales (pour Vue, React, etc.)
+    // Versions globales
     'dist/global.js',
-    `dist/${depName}.global.js`,
-    `dist/${depName}.global.min.js`,
+    `dist/${path.basename(depName)}.global.js`,
+    `dist/${path.basename(depName)}.global.min.js`,
 
     // Versions minifiées
     'dist/index.min.js',
     'index.min.js',
-    `dist/${depName}.min.js`,
-    `${depName}.min.js`,
+    `dist/${path.basename(depName)}.min.js`,
+    `${path.basename(depName)}.min.js`,
 
     // Versions standard
     'dist/index.js',
     'dist/main.js',
     'lib/index.js',
     'build/index.js',
-    `dist/${depName}.js`,
-    `${depName}.js`,
+    `dist/${path.basename(depName)}.js`,
+    `${path.basename(depName)}.js`,
     'index.js',
     'main.js'
   ];
@@ -104,6 +127,7 @@ function findUsableJSFile(depPath, depName) {
     if (fs.existsSync(filePath)) {
       // Vérifier que c'est un fichier JS utilisable
       if (isUsableJSFile(filePath)) {
+        console.log(`  🔍 Fichier trouvé pour ${depName}: ${candidate}`);
         return filePath;
       }
     }
@@ -113,6 +137,7 @@ function findUsableJSFile(depPath, depName) {
   for (const candidate of candidates) {
     const filePath = path.join(depPath, candidate);
     if (fs.existsSync(filePath)) {
+      console.log(`  🔍 Fichier de fallback pour ${depName}: ${candidate}`);
       return filePath;
     }
   }
