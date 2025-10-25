@@ -183,14 +183,15 @@ function parseNpmPath(importPath) {
  */
 async function copyNpmFile(importInfo, nodeModulesPath, outputDir, copiedFiles) {
   const { packageName, subpath, original } = importInfo;
+  const packagePath = path.join(nodeModulesPath, packageName);
 
   // Chemin source
   let sourcePath;
   if (subpath) {
     sourcePath = path.join(nodeModulesPath, packageName, subpath);
   } else {
-    // Si pas de subpath, chercher le fichier principal
-    sourcePath = findMainFile(path.join(nodeModulesPath, packageName));
+    // Si pas de subpath, utiliser findUsableJSFile pour trouver le bon fichier
+    sourcePath = findUsableJSFile(packagePath, packageName);
   }
 
   if (!sourcePath || !fs.existsSync(sourcePath)) {
@@ -226,7 +227,8 @@ async function copyNpmFile(importInfo, nodeModulesPath, outputDir, copiedFiles) 
   fs.copyFileSync(sourcePath, destPath);
   copiedFiles.set(destPath, true);
 
-  console.log(`  ✅ ${original} -> ${path.relative('dist', destPath)}`);
+  const relativeSource = path.relative(packagePath, sourcePath);
+  console.log(`  ✅ ${original} -> ${path.relative('dist', destPath)} (${relativeSource})`);
 
   // Si c'est un fichier JS, copier aussi les dépendances (imports relatifs)
   if (destPath.endsWith('.js') && subpath) {
@@ -240,6 +242,106 @@ async function copyNpmFile(importInfo, nodeModulesPath, outputDir, copiedFiles) 
 }
 
 /**
+ * Trouver le fichier JS utilisable d'un package (logique de copyNpmDependenciesPlugin)
+ */
+function findUsableJSFile(depPath, depName) {
+  // Liste générale des fichiers à chercher par ordre de priorité
+  const candidates = [
+    // Versions UMD spécifiques
+    `dist/${path.basename(depName)}.umd.js`,
+    `dist/${path.basename(depName)}.umd.min.js`,
+    `umd/${path.basename(depName)}.js`,
+    `umd/${path.basename(depName)}.min.js`,
+
+    // Versions browser/UMD génériques
+    'dist/umd/index.js',
+    'dist/browser.js',
+    'dist/bundle.js',
+    'umd/index.js',
+    'browser.js',
+
+    // Versions CDN
+    'dist/cdn.js',
+    'cdn.js',
+
+    // Versions globales
+    'dist/global.js',
+    `dist/${path.basename(depName)}.global.js`,
+    `dist/${path.basename(depName)}.global.min.js`,
+
+    // Versions minifiées
+    'dist/index.min.js',
+    'index.min.js',
+    `dist/${path.basename(depName)}.min.js`,
+    `${path.basename(depName)}.min.js`,
+
+    // Versions standard
+    'dist/index.js',
+    'dist/main.js',
+    'lib/index.js',
+    'build/index.js',
+    `dist/${path.basename(depName)}.js`,
+    `${path.basename(depName)}.js`,
+    'index.js',
+    'main.js'
+  ];
+
+  for (const candidate of candidates) {
+    const filePath = path.join(depPath, candidate);
+    if (fs.existsSync(filePath)) {
+      // Vérifier que c'est un fichier JS utilisable
+      if (isUsableJSFile(filePath)) {
+        return filePath;
+      }
+    }
+  }
+
+  // Si aucun fichier compatible trouvé, prendre le premier disponible
+  for (const candidate of candidates) {
+    const filePath = path.join(depPath, candidate);
+    if (fs.existsSync(filePath)) {
+      return filePath;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Vérifier si un fichier JS est utilisable (pas un module ES6 pur)
+ */
+function isUsableJSFile(filePath) {
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+
+    // Fichiers trop petits (probablement des redirections)
+    if (content.length < 100) {
+      return false;
+    }
+
+    // Éviter les fichiers qui sont clairement des modules ES6 purs
+    const hasESModuleExports = content.includes('export default') ||
+      content.includes('export {') ||
+      content.includes('export const') ||
+      content.includes('export function');
+
+    const hasCommonJSOrUMD = content.includes('module.exports') ||
+      content.includes('define(') ||
+      content.includes('(function (global, factory)') ||
+      content.includes('typeof exports');
+
+    // Préférer les fichiers avec CommonJS/UMD, éviter les modules ES6 purs
+    if (hasESModuleExports && !hasCommonJSOrUMD) {
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
  * Convertir un nom de package en nom de fichier propre
  */
 function getCleanPackageName(packageName) {
@@ -248,43 +350,6 @@ function getCleanPackageName(packageName) {
     return packageName.substring(1).replace('/', '-');
   }
   return packageName;
-}
-
-/**
- * Trouver le fichier principal d'un package npm
- */
-function findMainFile(packagePath) {
-  // 1. Lire package.json
-  const packageJsonPath = path.join(packagePath, 'package.json');
-  if (fs.existsSync(packageJsonPath)) {
-    try {
-      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-
-      // Chercher dans cet ordre: browser, module, main
-      const candidates = [
-        packageJson.browser,
-        packageJson.module,
-        packageJson.main
-      ].filter(Boolean);
-
-      for (const candidate of candidates) {
-        const filePath = path.join(packagePath, candidate);
-        if (fs.existsSync(filePath)) {
-          return filePath;
-        }
-      }
-    } catch (error) {
-      // Ignorer les erreurs de parsing
-    }
-  }
-
-  // 2. Fallback: chercher index.js
-  const indexPath = path.join(packagePath, 'index.js');
-  if (fs.existsSync(indexPath)) {
-    return indexPath;
-  }
-
-  return null;
 }
 
 /**
