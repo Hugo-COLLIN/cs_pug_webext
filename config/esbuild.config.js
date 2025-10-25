@@ -3,7 +3,7 @@ const { cleanDirectoryPlugin } = require('./esbuild/cleanDirectoryPlugin');
 const { virtualEntryPlugin } = require('./esbuild/virtualEntryPlugin');
 const { pugPlugin } = require('./esbuild/pugPlugin');
 const { generateManifestPlugin } = require('./esbuild/generateManifestPlugin');
-const { copyNpmDependenciesPlugin } = require('./esbuild/copyNpmDependenciesPlugin');
+const { smartCopyNpmDependenciesPlugin } = require('./esbuild/smartCopyNpmDependenciesPlugin');
 const { copy } = require('esbuild-plugin-copy');
 const { getEntryPointsFromManifest } = require('./esbuild/getEntryPoints');
 
@@ -34,11 +34,16 @@ const buildOptions = {
   sourcemap: process.env.APP_MODE !== 'prod',
   plugins: [
     cleanDirectoryPlugin(outdir),
-    virtualEntryPlugin(manifestData.virtualEntries), // Passer les virtualEntries au plugin
+    virtualEntryPlugin(manifestData.virtualEntries),
     pugPlugin(manifestData.pugFiles, watchMode),
-    copyNpmDependenciesPlugin({
+
+    // NOUVEAU: Plugin intelligent qui parse les Pug et copie les dépendances
+    smartCopyNpmDependenciesPlugin({
       outputDir: 'dist/js',
+      nodeModulesPath: './node_modules',
+      pugFiles: manifestData.pugFiles // Passer la liste des fichiers Pug
     }),
+
     generateManifestPlugin(process.env.TARGET_BROWSER || 'chrome'),
     copy({
       assets: staticAssetsConfig,
