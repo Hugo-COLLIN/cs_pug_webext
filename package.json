@@ -1,14 +1,12 @@
 {
   "name": "cs_pug_webext",
   "version": "1.0.0",
-  "description": "Extension de navigateur créée avec PureScript et Pug",
+  "description": "Extension de navigateur créée avec Civet et Pug",
   "scripts": {
-    "build:purescript": "spago build",
     "build:bundle": "node config/esbuild.config.js",
-    "build": "npm run build:purescript && npm run build:bundle",
-    "watch:purescript": "spago build --watch",
+    "build": "npm run build:bundle",
     "watch:bundle": "node config/esbuild.config.js --watch",
-    "watch": "concurrently \"npm run watch:purescript\" \"npm run watch:bundle\"",
+    "watch": "npm run watch:bundle",
     "build:chrome": "cross-env TARGET_BROWSER=chrome npm run build",
     "build:firefox": "cross-env TARGET_BROWSER=firefox npm run build",
     "dev:chrome": "cross-env APP_MODE=dev TARGET_BROWSER=chrome npm run watch",
@@ -18,6 +16,7 @@
     "prod": "npm run prod:chrome && npm run prod:firefox"
   },
   "devDependencies": {
+    "@danielx/civet": "^0.10.7",
     "concurrently": "^8.2.2",
     "cross-env": "^10.0.0",
     "esbuild": "^0.25.10",

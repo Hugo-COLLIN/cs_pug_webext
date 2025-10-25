@@ -12,7 +12,6 @@ function getEntryPointsFromManifest() {
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
   const entryPoints = {};
   const pugFiles = [];
-  const virtualEntries = {};
 
   // Utility function to add a file if it exists and is a source file
   function addSourceFile(filePath, context = '') {
@@ -22,49 +21,39 @@ function getEntryPointsFromManifest() {
     const cleanPath = filePath.startsWith('src/') ? filePath.substring(4) : filePath;
     const fullPath = `src/${cleanPath}`;
 
-    // Check if it is a source file (.purs or .pug)
-    if (cleanPath.endsWith('.purs')) {
-      // Determine the type of module based on the directory
+    // Check if it is a source file (.civet or .pug)
+    if (cleanPath.endsWith('.civet')) {
+      // Determine the output name based on the directory
       const moduleName = cleanPath.split('/')[0].toLowerCase(); // Background, Content, Popup
       const outputName = `js/${moduleName}`;
-      const virtualKey = `virtual:${moduleName}`;
 
       if (fs.existsSync(fullPath)) {
-        entryPoints[outputName] = virtualKey;
-        virtualEntries[virtualKey] = {
-          module: cleanPath.replace('.purs', '').replace('/', '.'),
-          resolveDir: process.cwd()
-        };
-        console.log(`✅ Entry point PURS found: ${cleanPath} -> ${virtualKey}`);
+        entryPoints[outputName] = fullPath;
+        console.log(`✅ Entry point Civet found: ${cleanPath}`);
       } else {
-        console.warn(`⚠️  Entry point PURS missing: ${fullPath}`);
+        console.warn(`⚠️  Entry point Civet missing: ${fullPath}`);
       }
     } else if (cleanPath.endsWith('.pug')) {
       if (fs.existsSync(fullPath)) {
         pugFiles.push(fullPath);
         console.log(`✅ PUG file found: ${fullPath}`);
 
-        // Search for the matching . pure file
-        const correspondingPursPath = cleanPath.replace('.pug', '.purs');
-        const correspondingFullPath = `src/${correspondingPursPath}`;
+        // Search for the matching .civet file
+        const correspondingCivetPath = cleanPath.replace('.pug', '.civet');
+        const correspondingFullPath = `src/${correspondingCivetPath}`;
 
         if (fs.existsSync(correspondingFullPath)) {
-          // Determine the type of module based on the directory
-          const moduleName = correspondingPursPath.split('/')[0].toLowerCase();
+          // Determine the output name based on the directory
+          const moduleName = correspondingCivetPath.split('/')[0].toLowerCase();
           const outputName = `js/${moduleName}`;
-          const virtualKey = `virtual:${moduleName}`;
 
-          // Avoid duplicates if the . pure has already been added
+          // Avoid duplicates if the .civet has already been added
           if (!entryPoints[outputName]) {
-            entryPoints[outputName] = virtualKey;
-            virtualEntries[virtualKey] = {
-              module: correspondingPursPath.replace('.purs', '').replace('/', '.'),
-              resolveDir: process.cwd()
-            };
-            console.log(`✅ Corresponding PURS entry point found: ${correspondingPursPath} -> ${virtualKey}`);
+            entryPoints[outputName] = correspondingFullPath;
+            console.log(`✅ Corresponding Civet entry point found: ${correspondingCivetPath}`);
           }
         } else {
-          console.log(`ℹ️  No matching .purs file found for: ${cleanPath}`);
+          console.log(`ℹ️  No matching .civet file found for: ${cleanPath}`);
         }
       } else {
         console.warn(`⚠️  Missing PUG file: ${fullPath}`);
@@ -102,7 +91,7 @@ function getEntryPointsFromManifest() {
   console.log('📄 Entry points detected:', entryPoints);
   console.log('📄 PUG files detected:', pugFiles);
 
-  return { entryPoints, pugFiles, virtualEntries };
+  return { entryPoints, pugFiles };
 }
 
 module.exports = { getEntryPointsFromManifest };

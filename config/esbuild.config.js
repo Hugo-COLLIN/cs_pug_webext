@@ -1,6 +1,6 @@
 const esbuild = require('esbuild');
+const civetPlugin = require('@danielx/civet/esbuild');
 const { cleanDirectoryPlugin } = require('./esbuild/cleanDirectoryPlugin');
-const { virtualEntryPlugin } = require('./esbuild/virtualEntryPlugin');
 const { pugPlugin } = require('./esbuild/pugPlugin');
 const { generateManifestPlugin } = require('./esbuild/generateManifestPlugin');
 const { copyNpmDependenciesPlugin } = require('./esbuild/copyNpmDependenciesPlugin');
@@ -34,7 +34,12 @@ const buildOptions = {
   sourcemap: process.env.APP_MODE !== 'prod',
   plugins: [
     cleanDirectoryPlugin(outdir),
-    virtualEntryPlugin(manifestData.virtualEntries), // Passer les virtualEntries au plugin
+    civetPlugin({
+      ts: 'esbuild',           // Utilise esbuild pour la transpilation, pas tsc
+      typecheck: false,         // Désactive le type checking TypeScript
+      implicitExtension: true,  // import "./x" trouve x.civet
+      outputExtension: '.js',   // Output direct en JavaScript
+    }),
     pugPlugin(manifestData.pugFiles, watchMode),
     copyNpmDependenciesPlugin({
       outputDir: 'dist/js',

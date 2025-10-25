@@ -1,0 +1,47 @@
+// Background service worker pour WebExtension
+
+// Gestionnaire pour l'installation de l'extension
+handleInstall := ->
+console.log "Extension installée"
+// Ici vous pouvez initialiser des données, configurer des alarmes, etc.
+
+// Gestionnaire pour les messages depuis les content scripts ou popup
+handleMessage := (message: string): string =>
+  console.log `Message reçu: ${message}`
+
+switch message
+  when "ping"
+    "pong"
+    when "getStatus"
+    "Extension active"
+  else
+    "Message non reconnu"
+
+// Gestionnaire pour les changements d'onglets
+    handleTabUpdate := ->
+    console.log "Onglet mis à jour"
+    // Logique à exécuter lors des changements d'onglets
+
+// Configuration des listeners Chrome/Firefox
+    setupListeners := ->
+    // Listener pour l'installation
+    chrome.runtime.onInstalled.addListener handleInstall
+
+    // Listener pour les messages
+    chrome.runtime.onMessage.addListener (message, sender, sendResponse) ->
+    response := handleMessage message
+    sendResponse { response }
+    true  // Indique une réponse asynchrone
+
+    // Listener pour les changements d'onglets
+    chrome.tabs.onUpdated.addListener (tabId, changeInfo, tab) ->
+    if changeInfo.status is "complete"
+    handleTabUpdate()
+
+// Point d'entrée du service worker
+    main := ->
+    console.log "Service Worker Civet initialisé"
+    setupListeners()
+
+// Auto-démarrage
+    main()

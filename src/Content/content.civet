@@ -1,0 +1,65 @@
+// Content script pour WebExtension
+
+// Fonction pour analyser la page courante
+analyzePage := ->
+  url := window.location.href
+  console.log `Content script actif sur: ${url}`
+
+  // Analyse de la page
+  links := document.querySelectorAll 'a'
+  images := document.querySelectorAll 'img'
+
+  console.log `Trouvé ${links.length} liens et ${images.length} images`
+
+  // Vous pouvez ajouter votre logique d'analyse ici
+  // Par exemple: compter les mots, extraire des données, etc.
+
+// Fonction pour injecter du CSS personnalisé
+injectStyles := ->
+  console.log "Injection des styles personnalisés"
+
+  style := document.createElement 'style'
+  style.textContent = `
+    /* Styles injectés par l'extension */
+    .extension-highlight {
+      background-color: yellow;
+      border: 2px solid orange;
+    }
+  `
+  document.head.appendChild style
+
+// Fonction pour communiquer avec le background script
+sendMessageToBackground := (message: string) ->
+  chrome.runtime.sendMessage { message }, (response) ->
+    console.log `Réponse du background: ${response?.response}`
+
+// Fonction pour observer les changements du DOM
+observePageChanges := ->
+  observer := new MutationObserver (mutations) ->
+    console.log `${mutations.length} changements détectés dans le DOM`
+
+  observer.observe document.body,
+    childList: true
+    subtree: true
+    attributes: false
+
+// Point d'entrée du script de contenu
+main := ->
+  console.log "Script de contenu Civet chargé"
+
+  // Attendre que le DOM soit complètement chargé
+  if document.readyState is "loading"
+    document.addEventListener "DOMContentLoaded", ->
+      analyzePage()
+      injectStyles()
+      observePageChanges()
+  else
+    analyzePage()
+    injectStyles()
+    observePageChanges()
+
+  // Test de communication avec le background
+  sendMessageToBackground "ping"
+
+// Auto-démarrage
+main()

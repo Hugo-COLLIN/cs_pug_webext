@@ -1,5 +1,5 @@
 {
-  "name": "Mon Extension PureScript",
+  "name": "Mon Extension Civet",
   "{{chrome}}.manifest_version": 3,
   "{{firefox}}.manifest_version": 2,
   "permissions": [
@@ -7,13 +7,13 @@
     "storage"
   ],
   "background": {
-    "{{firefox}}.scripts": ["Background/Background.purs"],
-    "{{chrome}}.service_worker": "Background/Background.purs"
+    "{{firefox}}.scripts": ["Background/background.civet"],
+    "{{chrome}}.service_worker": "Background/background.civet"
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["Content/Content.purs"]
+      "js": ["Content/content.civet"]
     }
   ],
   "{{firefox}}.browser_action": {
@@ -25,7 +25,7 @@
       "128": "assets/icons/icon128.png"
     }
   },
-  "{{chrome}}.browser_action": {
+  "{{chrome}}.action": {
     "default_popup": "Popup/popup.pug",
     "default_title": "Mon Extension",
     "default_icon": {
