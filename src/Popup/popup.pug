@@ -3,97 +3,235 @@ html(lang="fr")
   head
     meta(charset="UTF-8")
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
-    script(defer, src="../js/alpinejs-csp.js")
+
+    //- Shoelace Theme (sera copié automatiquement)
+    link(rel="stylesheet", href="@shoelace-style/shoelace/dist/themes/light.css")
+    link(rel="stylesheet", href="@shoelace-style/shoelace/dist/themes/dark.css")
+
+    //- Import des composants Shoelace utilisés (seront copiés automatiquement)
+    script(type="module", src="@shoelace-style/shoelace/dist/components/button/button.js")
+    script(type="module", src="@shoelace-style/shoelace/dist/components/icon/icon.js")
+    script(type="module", src="@shoelace-style/shoelace/dist/components/card/card.js")
+    script(type="module", src="@shoelace-style/shoelace/dist/components/badge/badge.js")
+    script(type="module", src="@shoelace-style/shoelace/dist/components/alert/alert.js")
+    script(type="module", src="@shoelace-style/shoelace/dist/components/switch/switch.js")
+    script(type="module", src="@shoelace-style/shoelace/dist/components/progress-bar/progress-bar.js")
+
+    //- Alpine.js CSP (sera copié et renommé automatiquement)
+    script(defer, src="@alpinejs/csp")
+
+    //- Configuration Shoelace pour les icônes en local
+    script.
+      // Configurer Shoelace pour utiliser les assets en local
+      if (window.customElements) {
+        customElements.whenDefined('sl-icon').then(() => {
+          const { setBasePath } = window.SlIcon;
+          if (setBasePath) {
+            setBasePath('../js/@shoelace-style/shoelace/dist');
+          }
+        });
+      }
+
     title Extension PureScript
+
     style.
         body {
-            width: 300px;
-            padding: 20px;
-            font-family: Arial, sans-serif;
+            width: 350px;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             margin: 0;
+            background: #f8fafc;
         }
+
         .header {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #333;
-        }
-        .button {
-            background: #4CAF50;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
-            margin-bottom: 10px;
-        }
-        .button:hover {
-            background: #45a049;
-        }
-        .status {
+            padding: 1.5rem;
             text-align: center;
-            margin-top: 15px;
-            padding: 10px;
-            border-radius: 4px;
-            display: none;
         }
-        .status.success {
-            background: #d4edda;
-            color: #155724;
+
+        .header h1 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.5rem;
         }
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
+
+        .header p {
+            margin: 0;
+            font-size: 0.875rem;
+            opacity: 0.9;
         }
-        .status.show {
-            display: block;
+
+        .content {
+            padding: 1rem;
+        }
+
+        .section {
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 0.75rem;
+        }
+
+        /* Customisation Shoelace */
+        sl-button {
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+
+        sl-button::part(base) {
+            width: 100%;
+        }
+
+        sl-alert {
+            margin-top: 1rem;
+        }
+
+        sl-card {
+            margin-bottom: 1rem;
+        }
+
+        sl-badge {
+            margin-right: 0.5rem;
         }
 
   body(x-data="popupData()")
+    //- Header
     .header
-      h1 Mon Extension
+      h1 🚀 Mon Extension
       p Powered by PureScript & Pug
 
-    -
-      var buttons = [
-         { label: 'Action principale', message: 'Action exécutée avec succès!', type: 'success' },
-         { label: 'Paramètres', message: 'Paramètres en cours de développement', type: 'error' },
-         { label: 'About', message: 'Extension PureScript v1.0.0', type: 'success' }
-       ]
+    .content
+      //- Section: Actions principales avec Shoelace Buttons
+      .section
+        .section-title Actions principales
 
-    .controls
-      each button in buttons
-        button.button(
-          data-message=button.message
-          data-type=button.type
-          x-on:click="showStatus($event.target.dataset.message, $event.target.dataset.type)"
-        )= button.label
+        sl-card
+          -
+            var buttons = [
+              { label: 'Action principale', message: 'Action exécutée avec succès!', type: 'success', variant: 'primary', icon: 'check-circle' },
+              { label: 'Paramètres', message: 'Paramètres en cours de développement', type: 'warning', variant: 'default', icon: 'gear' },
+              { label: 'About', message: 'Extension PureScript v1.0.0', type: 'primary', variant: 'success', icon: 'info-circle' }
+            ]
 
-    .status(x-bind:class="getStatusClasses()" x-show="isStatusVisible")
-      span(x-text="statusMessage")
+          each button in buttons
+            sl-button(
+              variant=button.variant
+              data-message=button.message
+              data-type=button.type
+              x-on:click="showStatus($event.target.dataset.message, $event.target.dataset.type)"
+            )
+              sl-icon(slot="prefix", name=button.icon)
+              = button.label
 
+      //- Section: Informations avec badges
+      .section
+        .section-title Informations
+
+        sl-card
+          div(style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;")
+            sl-badge(variant="primary", pill="") Version 1.0.0
+            sl-badge(variant="success", pulse="") Actif
+            sl-badge(variant="neutral") Mode Dev
+
+      //- Section: Paramètres avec switches
+      .section
+        .section-title Paramètres rapides
+
+        sl-card
+          sl-switch(
+            x-model="settings.notifications"
+            style="margin-bottom: 0.75rem;"
+          ) Activer les notifications
+
+          sl-switch(
+            x-model="settings.darkMode"
+          ) Mode sombre
+
+      //- Section: Progression
+      .section
+        .section-title Progression
+
+        sl-card
+          div(style="margin-bottom: 0.75rem;")
+            sl-progress-bar(
+              x-bind:value="progress"
+              style="--height: 1rem;"
+            )
+
+          div(style="display: flex; gap: 0.5rem;")
+            sl-button(
+              size="small"
+              variant="success"
+              x-on:click="progress = Math.min(100, progress + 10)"
+            )
+              sl-icon(slot="prefix", name="plus-circle")
+              | +10%
+
+            sl-button(
+              size="small"
+              variant="danger"
+              x-on:click="progress = Math.max(0, progress - 10)"
+            )
+              sl-icon(slot="prefix", name="dash-circle")
+              | -10%
+
+            sl-button(
+              size="small"
+              variant="default"
+              x-on:click="progress = 0"
+            )
+              sl-icon(slot="prefix", name="arrow-clockwise")
+              | Reset
+
+      //- Alert de statut (utilise Shoelace Alert)
+      div(x-show="isStatusVisible" x-transition)
+        sl-alert(
+          x-bind:variant="statusType"
+          open=""
+          closable=""
+          x-on:sl-hide="isStatusVisible = false"
+        )
+          sl-icon(
+            slot="icon"
+            x-bind:name="statusType === 'success' ? 'check-circle' : statusType === 'warning' ? 'exclamation-triangle' : 'info-circle'"
+          )
+          strong(x-text="statusMessage")
+
+    //- Script Alpine.js (logique réactive)
     script.
       function popupData() {
         return {
+          // État
           statusMessage: '',
-          statusType: '',
+          statusType: 'primary',
           isStatusVisible: false,
+          progress: 45,
 
-          // Méthode pour calculer les classes CSS
-          getStatusClasses: function() {
-            var classes = 'status';
-            if (this.statusType) {
-              classes += ' ' + this.statusType;
-            }
-            if (this.isStatusVisible) {
-              classes += ' show';
-            }
-            return classes;
+          // Paramètres
+          settings: {
+            notifications: true,
+            darkMode: false
           },
 
-          // Méthode d'initialisation
+          // Initialisation
           init: function() {
-            console.log('🚀 Popup Alpine CSP initialisé');
+            console.log('🚀 Popup Alpine CSP + Shoelace initialisé');
+
+            // Écouter les changements de settings
+            var self = this;
+            this.$watch('settings.darkMode', function(value) {
+              console.log('Mode sombre:', value);
+              // Changer le thème Shoelace
+              if (value) {
+                document.documentElement.classList.add('sl-theme-dark');
+              } else {
+                document.documentElement.classList.remove('sl-theme-dark');
+              }
+            });
           },
 
           // Méthode pour afficher un statut
@@ -102,10 +240,11 @@ html(lang="fr")
             this.statusType = type;
             this.isStatusVisible = true;
 
+            // Auto-hide après 4 secondes
             var self = this;
             setTimeout(function() {
               self.isStatusVisible = false;
-            }, 3000);
+            }, 4000);
           }
         };
       }
