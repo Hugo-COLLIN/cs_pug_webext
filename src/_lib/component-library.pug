@@ -1,0 +1,411 @@
+//- ==========================================
+//- MODERN PUG COMPONENT LIBRARY
+//- Pour Web Extensions & Applications modernes
+//- Compatible Alpine.js, Tailwind-like styles
+//- ==========================================
+
+//- ========== BUTTONS ==========
+mixin btn(opts={})
+  -
+    const defaults = {
+      label: 'Button',
+      type: 'button',
+      variant: 'primary',
+      size: 'md',
+      icon: null,
+      iconPosition: 'left',
+      disabled: false,
+      loading: false,
+      fullWidth: false,
+      onClick: ''
+    }
+    opts = Object.assign({}, defaults, opts)
+
+    const variants = {
+      primary: 'bg-blue-600 hover:bg-blue-700 text-white',
+      secondary: 'bg-gray-600 hover:bg-gray-700 text-white',
+      success: 'bg-green-600 hover:bg-green-700 text-white',
+      danger: 'bg-red-600 hover:bg-red-700 text-white',
+      warning: 'bg-yellow-600 hover:bg-yellow-700 text-white',
+      outline: 'border-2 border-blue-600 text-blue-600 hover:bg-blue-50',
+      ghost: 'text-blue-600 hover:bg-blue-50'
+    }
+
+    const sizes = {
+      sm: 'px-3 py-1.5 text-sm',
+      md: 'px-4 py-2 text-base',
+      lg: 'px-6 py-3 text-lg'
+    }
+
+    let classes = `btn ${variants[opts.variant] || variants.primary} ${sizes[opts.size]}`
+    if (opts.fullWidth) classes += ' w-full'
+    if (opts.disabled || opts.loading) classes += ' opacity-50 cursor-not-allowed'
+
+  button(
+    type=opts.type
+    class=classes
+    disabled=opts.disabled || opts.loading
+    x-on:click=opts.onClick
+  )&attributes(attributes)
+    if opts.loading
+      span.spinner ⟳
+    else if opts.icon && opts.iconPosition === 'left'
+      span.btn__icon= opts.icon
+    span.btn__label= opts.label
+    if opts.icon && opts.iconPosition === 'right'
+      span.btn__icon= opts.icon
+
+//- ========== INPUTS ==========
+mixin input(opts={})
+  -
+    const defaults = {
+      type: 'text',
+      name: '',
+      id: '',
+      label: '',
+      placeholder: '',
+      value: '',
+      required: false,
+      disabled: false,
+      error: '',
+      hint: '',
+      icon: null,
+      model: ''
+    }
+    opts = Object.assign({}, defaults, opts)
+    if (!opts.id) opts.id = opts.name
+
+  .form-group(class=opts.error ? 'has-error' : '')
+    if opts.label
+      label.form-label(for=opts.id)
+        = opts.label
+        if opts.required
+          span.text-red-600 *
+    .input-wrapper
+      if opts.icon
+        span.input-icon= opts.icon
+      input.form-input(
+        type=opts.type
+        id=opts.id
+        name=opts.name
+        placeholder=opts.placeholder
+        value=opts.value
+        required=opts.required
+        disabled=opts.disabled
+        x-model=opts.model
+        class=opts.icon ? 'has-icon' : ''
+      )&attributes(attributes)
+    if opts.error
+      span.form-error= opts.error
+    else if opts.hint
+      span.form-hint= opts.hint
+
+//- ========== CHECKBOX / SWITCH ==========
+mixin checkbox(opts={})
+  -
+    const defaults = {
+      name: '',
+      id: '',
+      label: '',
+      checked: false,
+      disabled: false,
+      model: ''
+    }
+    opts = Object.assign({}, defaults, opts)
+    if (!opts.id) opts.id = opts.name
+
+  .form-checkbox
+    input.checkbox-input(
+      type="checkbox"
+      id=opts.id
+      name=opts.name
+      checked=opts.checked
+      disabled=opts.disabled
+      x-model=opts.model
+    )&attributes(attributes)
+    label.checkbox-label(for=opts.id)= opts.label
+
+mixin switch(opts={})
+  -
+    const defaults = {
+      name: '',
+      id: '',
+      label: '',
+      checked: false,
+      disabled: false,
+      model: ''
+    }
+    opts = Object.assign({}, defaults, opts)
+    if (!opts.id) opts.id = opts.name
+
+  .form-switch
+    input.switch-input(
+      type="checkbox"
+      id=opts.id
+      name=opts.name
+      checked=opts.checked
+      disabled=opts.disabled
+      x-model=opts.model
+    )&attributes(attributes)
+    label.switch-label(for=opts.id)
+      span.switch-slider
+      span.switch-text= opts.label
+
+//- ========== CARDS ==========
+mixin card(opts={})
+  -
+    const defaults = {
+      title: null,
+      subtitle: null,
+      variant: 'default',
+      padding: 'normal',
+      hoverable: false
+    }
+    opts = Object.assign({}, defaults, opts)
+
+    let classes = 'card'
+    if (opts.variant !== 'default') classes += ` card--${opts.variant}`
+    if (opts.padding !== 'normal') classes += ` card--${opts.padding}`
+    if (opts.hoverable) classes += ' card--hoverable'
+
+  .card(class=classes)&attributes(attributes)
+    if opts.title
+      .card__header
+        h3.card__title= opts.title
+        if opts.subtitle
+          p.card__subtitle= opts.subtitle
+    .card__body
+      block
+    if block && block.footer
+      .card__footer
+        block footer
+
+//- ========== ALERTS / STATUS ==========
+mixin alert(opts={})
+  -
+    const defaults = {
+      type: 'info',
+      title: null,
+      dismissible: true,
+      icon: null
+    }
+    opts = Object.assign({}, defaults, opts)
+
+    const icons = {
+      success: '✓',
+      error: '✕',
+      warning: '⚠',
+      info: 'ℹ'
+    }
+    if (!opts.icon) opts.icon = icons[opts.type]
+
+  .alert(
+    class=`alert--${opts.type}`
+    x-data="{ show: true }"
+    x-show="show"
+  )&attributes(attributes)
+    .alert__content
+      if opts.icon
+        span.alert__icon= opts.icon
+      .alert__body
+        if opts.title
+          strong.alert__title= opts.title
+        .alert__message
+          block
+    if opts.dismissible
+      button.alert__close(x-on:click="show = false") ×
+
+//- ========== BADGES ==========
+mixin badge(opts={})
+  -
+    const defaults = {
+      text: '',
+      variant: 'default',
+      size: 'md',
+      pill: false,
+      dot: false
+    }
+    opts = Object.assign({}, defaults, opts)
+
+    let classes = `badge badge--${opts.variant} badge--${opts.size}`
+    if (opts.pill) classes += ' badge--pill'
+
+  span(class=classes)&attributes(attributes)
+    if opts.dot
+      span.badge__dot
+    = opts.text
+
+//- ========== MODALS ==========
+mixin modal(opts={})
+  -
+    const defaults = {
+      id: 'modal',
+      title: 'Modal',
+      size: 'md',
+      closeButton: true
+    }
+    opts = Object.assign({}, defaults, opts)
+
+  .modal-overlay(
+    x-show=opts.id
+    x-on:click=`${opts.id} = false`
+    style="display: none;"
+  )&attributes(attributes)
+  .modal(
+    x-show=opts.id
+    class=`modal--${opts.size}`
+    style="display: none;"
+  )
+    .modal__header
+      h2.modal__title= opts.title
+      if opts.closeButton
+        button.modal__close(x-on:click=`${opts.id} = false`) ×
+    .modal__body
+      block
+    if block && block.footer
+      .modal__footer
+        block footer
+
+//- ========== TABS ==========
+mixin tabs(tabs=[])
+  .tabs(x-data="{ activeTab: 0 }")&attributes(attributes)
+    .tabs__header
+      each tab, index in tabs
+        button.tabs__button(
+          x-on:click=`activeTab = ${index}`
+          x-bind:class=`activeTab === ${index} ? 'tabs__button--active' : ''`
+        )= tab.title
+    .tabs__content
+      each tab, index in tabs
+        .tabs__panel(
+          x-show=`activeTab === ${index}`
+        )
+          = tab.content
+
+//- ========== LISTS ==========
+mixin list(items=[], opts={})
+  -
+    const defaults = {
+      variant: 'default',
+      hoverable: false,
+      divided: true
+    }
+    opts = Object.assign({}, defaults, opts)
+
+    let classes = `list list--${opts.variant}`
+    if (opts.hoverable) classes += ' list--hoverable'
+    if (opts.divided) classes += ' list--divided'
+
+  ul(class=classes)&attributes(attributes)
+    each item in items
+      li.list__item
+        if typeof item === 'object'
+          if item.icon
+            span.list__icon= item.icon
+          if item.avatar
+            img.list__avatar(src=item.avatar alt=item.text)
+          .list__content
+            .list__text= item.text
+            if item.description
+              .list__description= item.description
+          if item.action
+            .list__action= item.action
+        else
+          = item
+
+//- ========== DROPDOWN ==========
+mixin dropdown(opts={})
+  -
+    const defaults = {
+      trigger: 'Click me',
+      align: 'left'
+    }
+    opts = Object.assign({}, defaults, opts)
+
+  .dropdown(
+    x-data="{ open: false }"
+    x-on:click.outside="open = false"
+  )&attributes(attributes)
+    button.dropdown__trigger(x-on:click="open = !open")= opts.trigger
+    .dropdown__menu(
+      x-show="open"
+      class=`dropdown__menu--${opts.align}`
+      style="display: none;"
+    )
+      block
+
+//- ========== TOOLTIPS (CSS only) ==========
+mixin tooltip(text, position='top')
+  span.tooltip(data-tooltip=text data-position=position)
+    block
+
+//- ========== AVATAR ==========
+mixin avatar(opts={})
+  -
+    const defaults = {
+      src: null,
+      alt: '',
+      initials: '',
+      size: 'md',
+      status: null
+    }
+    opts = Object.assign({}, defaults, opts)
+
+    let classes = `avatar avatar--${opts.size}`
+    if (opts.status) classes += ` avatar--${opts.status}`
+
+  .avatar(class=classes)&attributes(attributes)
+    if opts.src
+      img.avatar__image(src=opts.src alt=opts.alt)
+    else if opts.initials
+      span.avatar__initials= opts.initials
+    if opts.status
+      span.avatar__status
+
+//- ========== PROGRESS BAR ==========
+mixin progress(opts={})
+  -
+    const defaults = {
+      value: 0,
+      max: 100,
+      variant: 'primary',
+      size: 'md',
+      label: false,
+      animated: false
+    }
+    opts = Object.assign({}, defaults, opts)
+    const percentage = (opts.value / opts.max) * 100
+
+  .progress(class=`progress--${opts.size}`)&attributes(attributes)
+    .progress__bar(
+      class=`progress__bar--${opts.variant} ${opts.animated ? 'progress__bar--animated' : ''}`
+      style=`width: ${percentage}%`
+      role="progressbar"
+      aria-valuenow=opts.value
+      aria-valuemin="0"
+      aria-valuemax=opts.max
+    )
+    if opts.label
+      .progress__label= `${Math.round(percentage)}%`
+
+//- ========== SKELETON LOADER ==========
+mixin skeleton(opts={})
+  -
+    const defaults = {
+      type: 'text',
+      lines: 3,
+      avatar: false
+    }
+    opts = Object.assign({}, defaults, opts)
+
+  .skeleton&attributes(attributes)
+    if opts.avatar
+      .skeleton__avatar
+    if opts.type === 'text'
+      - for (let i = 0; i < opts.lines; i++)
+      .skeleton__line(style=i === opts.lines - 1 ? 'width: 60%' : '')
+    else if opts.type === 'card'
+      .skeleton__image
+      .skeleton__content
+        .skeleton__line
+        .skeleton__line(style="width: 80%")
