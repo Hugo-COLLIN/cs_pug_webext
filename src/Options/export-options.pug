@@ -1,0 +1,433 @@
+include ../_lib/component-library
+
+doctype html
+html(lang="fr")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    link(rel="stylesheet", href="../assets/component-styling.css")
+    script(defer, src="../js/alpinejs-csp.js")
+    title Export Options
+    style.
+        /* --- Component styles --- */
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #f9fafb;
+        }
+
+        main {
+            padding: 1rem 1rem 0.5rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+
+        /* --- Header styles --- */
+        .title-div {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .inner-span-image {
+            margin-right: 10px;
+        }
+
+        .feedback {
+            text-align: center;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 0.5rem;
+            color: #856404;
+        }
+
+        .feedback a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        .feedback a:hover {
+            text-decoration: underline;
+        }
+
+        /* --- Form styles --- */
+        .bottom-btn {
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        #options-form {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        #options-fieldset {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+            border: none;
+            padding: 0;
+        }
+
+        /* --- Collapsible sections --- */
+        .collapsible {
+            background: white;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .collapsible-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            background: white;
+            border: none;
+            width: 100%;
+            text-align: left;
+            transition: background 0.2s;
+        }
+
+        .collapsible-header:hover {
+            background: #f9fafb;
+        }
+
+        .collapsible-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .collapsible.open .collapsible-icon {
+            transform: rotate(180deg);
+        }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+            padding: 0 1rem;
+        }
+
+        .collapsible.open .collapsible-content {
+            max-height: 1000px;
+            padding: 0 1rem 1rem;
+            overflow-y: auto;
+        }
+
+        /* --- Export options --- */
+        .export-options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .webhook-input {
+            margin-top: 1rem;
+            opacity: 0.5;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .webhook-input.enabled {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* --- Documentation styles --- */
+        .doc-section {
+            margin: 1rem 0;
+            font-size: 0.875rem;
+            color: #4b5563;
+        }
+
+        .doc-section p {
+            margin: 0.5rem 0;
+        }
+
+        .doc-section i {
+            display: block;
+            font-weight: 600;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            color: #1f2937;
+        }
+
+        .doc-section ul {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .doc-section li {
+            margin: 0.25rem 0;
+        }
+
+        /* --- Toast styles --- */
+        .toast-stack {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+            max-width: 400px;
+        }
+
+  body(
+    x-data="exportOptionsData()"
+    x-init="init()"
+  )
+    main.container
+      //- Header
+      .title-div
+        span.inner-span-image
+          img(
+            x-bind:src="iconUrl"
+            alt="App icon"
+            width="48"
+            height="48"
+          )
+        h1.title Export Options
+
+      //- Feedback banner
+      .feedback
+        p Options page is currently in beta.
+          a(
+            x-bind:href="appInfos.URLS.DISCUSSIONS"
+            target="_blank"
+          ) Share feedback and report bugs.
+
+      //- Form
+      form#options-form(x-on:submit.prevent="saveOptions")
+        fieldset#options-fieldset.container
+
+          //- Filename Settings Section
+          .collapsible(
+            x-bind:class="{ 'open': openSection === 'filename' }"
+          )
+            button.collapsible-header(
+              type="button"
+              x-on:click="toggleSection('filename')"
+            )
+              span Filename Settings
+              span.collapsible-icon ▼
+
+            .collapsible-content
+              +input({
+                id: 'filenameTemplate',
+                label: 'Filename format:',
+                placeholder: 'Enter filename format',
+                model: 'filenameTemplate'
+              })
+
+              .doc-section
+                p The filename format is a string containing placeholders, that will be replaced by the actual values when exporting a page.
+                p The currently supported placeholders are:
+
+                i Domain placeholders:
+                ul
+                  li %W - Sub-domain name (e.g. "Phind Search", "Perplexity Pages")
+                  li %H - Host name (e.g. "www.chatgpt.com")
+                  li %T - Title of the page (first 60 characters)
+
+                i Date placeholders:
+                ul
+                  li %t - Timestamp (Unix time)
+                  li %Y - Year
+                  li %M - Month
+                  li %D - Day
+                  li %h - Hour
+                  li %m - Minutes
+                  li %s - Seconds
+
+          //- Output Settings Section
+          .collapsible(
+            x-bind:class="{ 'open': openSection === 'output' }"
+          )
+            button.collapsible-header(
+              type="button"
+              x-on:click="toggleSection('output')"
+            )
+              span Output Settings
+              span.collapsible-icon ▼
+
+            .collapsible-content
+              .export-options
+                p Here you can choose how your exports are saved and shared:
+
+                +checkbox({
+                  id: 'enableLocalDownload',
+                  label: 'Local file download',
+                  model: 'outputOptions.localDownload'
+                })
+
+                +checkbox({
+                  id: 'enableWebhook',
+                  label: 'Webhook export',
+                  model: 'outputOptions.webhook'
+                })
+
+                div(x-bind:class="{ 'webhook-input': true, 'enabled': outputOptions.webhook }")
+                  +input({
+                    id: 'webhookUrl',
+                    label: 'Webhook URL:',
+                    type: 'url',
+                    placeholder: 'Enter webhook URL',
+                    model: 'webhookUrl'
+                  })
+
+        //- Save button
+        .bottom-btn
+          +btn({
+            label: 'Save changes',
+            type: 'submit',
+            variant: 'primary'
+          })
+
+      //- Toast notifications
+      .toast-stack
+        div(
+          x-show="toast.visible"
+        )
+          +alert({ "type": 'success', dismissible: true })
+            span(x-text="toast.message")
+
+    //- Alpine.js State Management
+    script.
+      function exportOptionsData() {
+        return {
+          // App info
+          appInfos: {
+            APP_SNAME: 'Export Helper',
+            URLS: {
+              DISCUSSIONS: 'https://github.com/your-repo/discussions'
+            }
+          },
+          iconUrl: '',
+
+          // Form state
+          filenameTemplate: '',
+          webhookUrl: '',
+          outputOptions: {
+            localDownload: true,
+            webhook: false
+          },
+
+          // UI state
+          openSection: 'filename', // Default open section
+          toast: {
+            visible: false,
+            message: '',
+            type: 'success'
+          },
+
+          // Initialize
+          init: async function() {
+            console.log('🚀 Export Options initialized');
+
+            // Set icon URL (Chrome extension context)
+            if (typeof chrome !== 'undefined' && chrome.runtime) {
+              this.iconUrl = '../assets/icons/icon500.png'
+            } else {
+              // Fallback for development
+              this.iconUrl = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"><rect fill="%234CAF50" width="48" height="48"/></svg>';
+            }
+
+            // Load saved settings
+            await this.loadSettings();
+          },
+
+          // Load settings from Chrome storage
+          loadSettings: async function() {
+            if (typeof chrome !== 'undefined' && chrome.storage) {
+              try {
+                const result = await chrome.storage.sync.get([
+                  'filenameTemplate',
+                  'webhookUrl',
+                  'outputOptions'
+                ]);
+
+                this.filenameTemplate = result.filenameTemplate || '';
+                this.webhookUrl = result.webhookUrl || '';
+                this.outputOptions = result.outputOptions || this.outputOptions;
+
+                console.log('✅ Settings loaded:', result);
+              } catch (error) {
+                console.error('❌ Error loading settings:', error);
+              }
+            } else {
+              // Fallback for development (use localStorage)
+              const stored = localStorage.getItem('exportOptions');
+              if (stored) {
+                const data = JSON.parse(stored);
+                this.filenameTemplate = data.filenameTemplate || '';
+                this.webhookUrl = data.webhookUrl || '';
+                this.outputOptions = data.outputOptions || this.outputOptions;
+              }
+            }
+          },
+
+          // Toggle collapsible sections
+          toggleSection: function(section) {
+            if (this.openSection === section) {
+              this.openSection = null;
+            } else {
+              this.openSection = section;
+            }
+          },
+
+          // Save options
+          saveOptions: async function() {
+            const dataToSave = {
+              filenameTemplate: this.filenameTemplate,
+              webhookUrl: this.webhookUrl,
+              outputOptions: this.outputOptions
+            };
+
+            if (typeof chrome !== 'undefined' && chrome.storage) {
+              try {
+                await chrome.storage.sync.set(dataToSave);
+                console.log('✅ Settings saved:', dataToSave);
+                this.showToast('Options saved successfully', 'success');
+              } catch (error) {
+                console.error('❌ Error saving settings:', error);
+                this.showToast('Failed to save options', 'error');
+              }
+            } else {
+              // Fallback for development
+              localStorage.setItem('exportOptions', JSON.stringify(dataToSave));
+              console.log('✅ Settings saved to localStorage:', dataToSave);
+              this.showToast('Options saved successfully (dev mode)', 'success');
+            }
+          },
+
+          // Show toast notification
+          showToast: function(message, type) {
+            this.toast.message = message;
+            this.toast.type = type || 'success';
+            this.toast.visible = true;
+
+            var self = this;
+            setTimeout(function() {
+              self.toast.visible = false;
+            }, 5000);
+          }
+        };
+      }
